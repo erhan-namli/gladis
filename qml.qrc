@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Components/GameCard.qml</file>
+        <file>Components/CarouselView.qml</file>
+        <file>Components/HoursDisplay.qml</file>
+        <file>Components/NewGamesGrid.qml</file>
+        <file>Components/PlayerStats.qml</file>
+        <file>Components/SlidingPanel.qml</file>
+        <file>Components/WindshieldWiperImages.qml</file>
+        <file>Components/ScrollingText.qml</file>
+        <file>Components/PixmapScrollingText.qml</file>
+        <file>Components/SwapImageAnimation.qml</file>
+        <file>Components/AnimatedBorderBox.qml</file>
+        <file>fonts/OpenSans-Regular.ttf</file>
+        <file>fonts/OpenSans-Bold.ttf</file>
+        <file>fonts/OpenSans-SemiBold.ttf</file>
+        <file>assets/icon_xbox.svg</file>
+        <file>assets/icon_pc.svg</file>
+        <file>assets/icon_switch.svg</file>
+        <file>assets/icon_ps5.svg</file>
+    </qresource>
+</RCC>
