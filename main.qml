@@ -504,4 +504,12 @@ Window {
         colorBg02: configManager.colorBg02
         colorText: configManager.colorText
     }
+
+    // Custom Cursor (always on top)
+    CustomCursor {
+        id: customCursor
+        anchors.fill: parent
+        z: 10000
+        enabled: configManager.renderMouse === 1
+    }
 }

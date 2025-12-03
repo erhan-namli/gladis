@@ -13,6 +13,7 @@
         <file>Components/SwapImageAnimation.qml</file>
         <file>Components/AnimatedBorderBox.qml</file>
         <file>Components/TimerApp.qml</file>
+        <file>Components/CustomCursor.qml</file>
         <file>fonts/OpenSans-Regular.ttf</file>
         <file>fonts/OpenSans-Bold.ttf</file>
         <file>fonts/OpenSans-SemiBold.ttf</file>
@@ -24,5 +25,9 @@
         <file>assets/icon_arcade.svg</file>
         <file>assets/icon_total.svg</file>
         <file>assets/gamelab-bits.svg</file>
+        <file>mouse_assets/mouse-point.png</file>
+        <file>mouse_assets/mouse-hover.png</file>
+        <file>mouse_assets/mouse-field.png</file>
+        <file>mouse_assets/mouse-delay.png</file>
     </qresource>
 </RCC>

@@ -46,6 +46,11 @@ class ConfigManager : public QObject
     Q_PROPERTY(int renderWidth READ renderWidth NOTIFY configChanged)
     Q_PROPERTY(int renderHeight READ renderHeight NOTIFY configChanged)
     Q_PROPERTY(int renderRotate READ renderRotate NOTIFY configChanged)
+    Q_PROPERTY(int renderMouse READ renderMouse NOTIFY configChanged)
+    Q_PROPERTY(QString mousePoint READ mousePoint NOTIFY configChanged)
+    Q_PROPERTY(QString mouseHover READ mouseHover NOTIFY configChanged)
+    Q_PROPERTY(QString mouseField READ mouseField NOTIFY configChanged)
+    Q_PROPERTY(QString mouseDelay READ mouseDelay NOTIFY configChanged)
 
     // App Live properties
     Q_PROPERTY(QString layer0 READ layer0 NOTIFY configChanged)
@@ -100,6 +105,11 @@ public:
     int renderWidth() const { return m_renderWidth; }
     int renderHeight() const { return m_renderHeight; }
     int renderRotate() const { return m_renderRotate; }
+    int renderMouse() const { return m_renderMouse; }
+    QString mousePoint() const { return m_mousePoint; }
+    QString mouseHover() const { return m_mouseHover; }
+    QString mouseField() const { return m_mouseField; }
+    QString mouseDelay() const { return m_mouseDelay; }
 
     // Getters for app live
     QString layer0() const { return m_layer0; }
@@ -161,6 +171,11 @@ private:
     int m_renderWidth;
     int m_renderHeight;
     int m_renderRotate;
+    int m_renderMouse;
+    QString m_mousePoint;
+    QString m_mouseHover;
+    QString m_mouseField;
+    QString m_mouseDelay;
 
     // App live properties
     QString m_layer0;

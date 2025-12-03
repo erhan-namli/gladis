@@ -52,35 +52,63 @@ Rectangle {
             anchors.centerIn: parent
             spacing: 10 // Reduced spacing between numbers and text
 
-            // 1. The Countdown Display
-            Row {
-                id: digitsRow
+            // 1. The Countdown Display with animated bits
+            Item {
                 Layout.alignment: Qt.AlignHCenter
-                spacing: 10 // Spacing between digits
+                width: digitsRow.width + animatedBits.width + 20
+                height: digitsRow.height
 
-                // Helper to pad numbers (e.g. 9 -> "09")
-                property string timeString: root.currentTime.toString().padStart(2, '0')
+                Row {
+                    id: digitsRow
+                    anchors.centerIn: parent
+                    spacing: 10 // Spacing between digits
 
-                // TENS DIGIT
-                CubeDigit {
-                    digitText: digitsRow.timeString.charAt(0)
-                    primaryColor: root.colorMain
-                    fontFamily: countdownFont.status === FontLoader.Ready ? countdownFont.name : "Arial"
-                    // Bigger Size
-                    width: 160
-                    height: 300
-                    fontSize: 280
+                    // Helper to pad numbers (e.g. 9 -> "09")
+                    property string timeString: root.currentTime.toString().padStart(2, '0')
+
+                    // TENS DIGIT
+                    CubeDigit {
+                        digitText: digitsRow.timeString.charAt(0)
+                        primaryColor: root.colorMain
+                        fontFamily: countdownFont.status === FontLoader.Ready ? countdownFont.name : "Arial"
+                        // Bigger Size
+                        width: 160
+                        height: 300
+                        fontSize: 280
+                    }
+
+                    // ONES DIGIT
+                    CubeDigit {
+                        digitText: digitsRow.timeString.charAt(1)
+                        primaryColor: root.colorMain
+                        fontFamily: countdownFont.status === FontLoader.Ready ? countdownFont.name : "Arial"
+                        // Bigger Size
+                        width: 160
+                        height: 300
+                        fontSize: 280
+                    }
                 }
 
-                // ONES DIGIT
-                CubeDigit {
-                    digitText: digitsRow.timeString.charAt(1)
-                    primaryColor: root.colorMain
-                    fontFamily: countdownFont.status === FontLoader.Ready ? countdownFont.name : "Arial"
-                    // Bigger Size
-                    width: 160
-                    height: 300
-                    fontSize: 280
+                // Animated Bits - Positioned near the countdown numbers (top right)
+                Image {
+                    id: animatedBits
+                    width: 120  // 3x bigger (was 60)
+                    height: 120 // 3x bigger (was 60)
+                    anchors.left: digitsRow.right
+                    anchors.top: digitsRow.top
+                    anchors.leftMargin: 20
+                    anchors.topMargin: 10
+                    source: "qrc:/assets/gamelab-bits.svg"
+                    fillMode: Image.PreserveAspectFit
+                    visible: true
+
+                    RotationAnimator {
+                        target: animatedBits
+                        from: 0; to: 360
+                        duration: 2000
+                        loops: Animation.Infinite
+                        running: root.timerCount
+                    }
                 }
             }
 
@@ -93,28 +121,6 @@ Rectangle {
                 font.bold: true
                 font.letterSpacing: 2
                 color: root.colorText
-            }
-        }
-
-        // Animated Bits - Positioned at top right corner of countdown area
-        Image {
-            id: animatedBits
-            width: 80
-            height: 80
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.rightMargin: 40
-            anchors.topMargin: 40
-            source: "qrc:/assets/gamelab-bits.svg"
-            fillMode: Image.PreserveAspectFit
-            visible: true
-
-            RotationAnimator {
-                target: animatedBits
-                from: 0; to: 360
-                duration: 2000
-                loops: Animation.Infinite
-                running: root.timerCount
             }
         }
     }
@@ -150,12 +156,16 @@ Rectangle {
 
         // Button: LEFT (Need More Time)
         Rectangle {
+            id: leftButton
             width: 300; height: 80
             radius: 10 // Slightly sharper corners per design
             color: root.colorMain
             border.color: root.colorMain
             border.width: 3
-            visible: root.timerMenuLeft !== "" 
+            visible: root.timerMenuLeft !== ""
+
+            property bool isHovered: false
+            opacity: isHovered ? 0.7 : 1.0
 
             Text {
                 anchors.centerIn: parent
@@ -164,25 +174,40 @@ Rectangle {
             }
 
             MouseArea {
+                id: leftMouseArea
                 anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onEntered: leftButton.isHovered = true
+                onExited: leftButton.isHovered = false
+
                 onClicked: {
                     root.currentTime = root.timerMax
                     root.timerCount = true
+                    leftButton.isHovered = false
+                    Qt.callLater(function() { leftButton.isHovered = leftMouseArea.containsMouse })
                 }
                 onPressed: parent.scale = 0.95
                 onReleased: parent.scale = 1.0
             }
+
             Behavior on scale { NumberAnimation { duration: 100 } }
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         // Button: MIDDLE
         Rectangle {
+            id: middleButton
             width: 300; height: 80
             radius: 10
             color: "transparent"
             border.color: root.colorMain
             border.width: 3
-            visible: root.timerMenuMiddle !== "" 
+            visible: root.timerMenuMiddle !== ""
+
+            property bool isHovered: false
+            opacity: isHovered ? 0.7 : 1.0
 
             Text {
                 anchors.centerIn: parent
@@ -191,22 +216,39 @@ Rectangle {
             }
 
             MouseArea {
+                id: middleMouseArea
                 anchors.fill: parent
-                onClicked: console.log("Middle button clicked")
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onEntered: middleButton.isHovered = true
+                onExited: middleButton.isHovered = false
+
+                onClicked: {
+                    console.log("Middle button clicked")
+                    middleButton.isHovered = false
+                    Qt.callLater(function() { middleButton.isHovered = middleMouseArea.containsMouse })
+                }
                 onPressed: parent.scale = 0.95
                 onReleased: parent.scale = 1.0
             }
+
             Behavior on scale { NumberAnimation { duration: 100 } }
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         // Button: RIGHT (Start Over)
         Rectangle {
+            id: rightButton
             width: 300; height: 80
             radius: 10
             color: "transparent"
             border.color: root.colorMain
             border.width: 3
-            visible: root.timerMenuRight !== "" 
+            visible: root.timerMenuRight !== ""
+
+            property bool isHovered: false
+            opacity: isHovered ? 0.7 : 1.0
 
             Text {
                 anchors.centerIn: parent
@@ -215,15 +257,26 @@ Rectangle {
             }
 
             MouseArea {
+                id: rightMouseArea
                 anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onEntered: rightButton.isHovered = true
+                onExited: rightButton.isHovered = false
+
                 onClicked: {
-                    root.timerCount = false
                     root.currentTime = root.timerMax
+                    // Keep the timer running if it was already running
+                    rightButton.isHovered = false
+                    Qt.callLater(function() { rightButton.isHovered = rightMouseArea.containsMouse })
                 }
                 onPressed: parent.scale = 0.95
                 onReleased: parent.scale = 1.0
             }
+
             Behavior on scale { NumberAnimation { duration: 100 } }
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
 

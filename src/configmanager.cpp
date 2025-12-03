@@ -12,6 +12,7 @@ ConfigManager::ConfigManager(QObject *parent)
     , m_renderWidth(1080)
     , m_renderHeight(1920)
     , m_renderRotate(0)
+    , m_renderMouse(1)
     , m_layer0("app_hello")
     , m_timerState(false)
     , m_timerCount(false)
@@ -132,10 +133,16 @@ void ConfigManager::loadConfig()
         m_renderHeight = dimensions[1].toInt();
     }
     m_renderRotate = m_settings->value("render_rotate", 0).toInt();
+    m_renderMouse = m_settings->value("render_mouse", 1).toInt();
+    m_mousePoint = m_settings->value("mouse-point", "mouse_assets/mouse-point.png").toString();
+    m_mouseHover = m_settings->value("mouse-hover", "mouse_assets/mouse-hover.png").toString();
+    m_mouseField = m_settings->value("mouse-field", "mouse_assets/mouse-field.png").toString();
+    m_mouseDelay = m_settings->value("mouse-delay", "mouse_assets/mouse-delay.png").toString();
     m_settings->endGroup();
 
     qDebug() << "Active layer (layer_0):" << m_layer0;
     qDebug() << "Render dimensions:" << m_renderWidth << "x" << m_renderHeight << "Rotation:" << m_renderRotate;
+    qDebug() << "Custom mouse cursor:" << (m_renderMouse ? "enabled" : "disabled");
 
     // Load App Timer section
     m_settings->beginGroup("app_timer");
