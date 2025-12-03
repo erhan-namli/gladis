@@ -54,6 +54,11 @@ Item {
                     break
             }
 
+            // Return empty string if no path configured
+            if (!filePath || filePath === "") {
+                return ""
+            }
+
             // Use file: prefix for external files, qrc: for embedded resources
             if (filePath.startsWith("qrc:/") || filePath.startsWith("file:")) {
                 return filePath
