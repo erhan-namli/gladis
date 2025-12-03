@@ -25,6 +25,8 @@ set(PROJECT_SOURCES
     src/main.cpp
     src/datamanager.cpp
     src/datamanager.h
+    src/configmanager.cpp
+    src/configmanager.h
 )
 
 # QML resources

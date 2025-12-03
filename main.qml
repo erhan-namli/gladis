@@ -6,14 +6,34 @@ Window {
     id: mainWindow
     visible: true
     visibility: Window.FullScreen
-    // 9:16 aspect ratio - 1080p (1080x1920) or 4K (2160x3840)
-    width: 1080
-    height: 1920
+    // Dynamic resolution from config (default 1080x1920 portrait for app_hello)
+    width: configManager.renderWidth
+    height: configManager.renderHeight
     title: "GameLab Esports Dashboard"
     color: "#333333"
 
     // Detect orientation
     property bool isPortrait: height > width
+
+    // Active layer from config
+    property string activeLayer: configManager.layer0
+
+    // Handle resolution changes
+    onWidthChanged: {
+        console.log("Resolution changed - Width:", width, "Height:", height)
+        Qt.callLater(adjustToResolution)
+    }
+
+    onHeightChanged: {
+        console.log("Resolution changed - Width:", width, "Height:", height)
+        Qt.callLater(adjustToResolution)
+    }
+
+    function adjustToResolution() {
+        console.log("Adjusting UI to new resolution:", width, "x", height)
+        // Force QML engine to re-evaluate all bindings and layouts
+        // This ensures all components adjust to the new dimensions
+    }
 
     // TOGGLE THIS: Set to true to use pixmap scrolling (last resort), false for fade in/out carousel
     property bool usePixmapScrolling: true
@@ -32,19 +52,22 @@ Window {
         source: "qrc:/fonts/OpenSans-SemiBold.ttf"
     }
 
-    // Color properties from facility_colors
-    property string primaryColor: dataManager.facilityColors["--primary_gradient_color"] || "#002657"
-    property string accentColor: dataManager.facilityColors["--accent_gradient_color"] || "#00529b"
-    property string textColor: dataManager.facilityColors["--text_color"] || "#fb6502"
-    property string hoverColor: dataManager.facilityColors["--hover_color"] || "#ffffff"
+    // Color properties from config (dynamically loaded from glad is.ini)
+    property string primaryColor: configManager.colorBg01
+    property string accentColor: configManager.colorBg02
+    property string textColor: configManager.colorText
+    property string hoverColor: configManager.colorMain
 
-    // Game images array
+    // Game images array (dynamically loaded from gladis.ini)
     property var gameImages: [
-        dataManager.getGameImagePath(1),
-        dataManager.getGameImagePath(2),
-        dataManager.getGameImagePath(3),
-        dataManager.getGameImagePath(4)
+        configManager.helloSpinImg1,
+        configManager.helloSpinImg2,
+        configManager.helloSpinImg3,
+        configManager.helloSpinImg4
     ]
+
+
+// OLD CONTENT MOVED TO HelloApp.qml (will create next)
 
     // Background with gradient using facility colors
     Rectangle {
@@ -68,8 +91,8 @@ Window {
         Component {
             id: fadeTopScroll
             ScrollingText {
-                text: dataManager.scrollUpperText
-                textColor: mainWindow.textColor  // Orange text
+                text: configManager.helloNews1
+                textColor: mainWindow.textColor
                 backgroundColor: "#1a1a1a"
                 textSize: 40
                 showBottomLine: true
@@ -81,16 +104,16 @@ Window {
             id: pixmapTopScroll
             PixmapScrollingText {
                 anchors.fill: parent
-                text: dataManager.scrollUpperText
-                textColor: mainWindow.textColor  // Orange text
-                lineColor: mainWindow.hoverColor  // White line
+                text: configManager.helloNews1
+                textColor: mainWindow.textColor
+                lineColor: mainWindow.hoverColor
                 backgroundColor: "#1a1a1a"
                 textSize: 40
                 showBottomLine: true
-                scrollSpeed: 100  // Adjust for smooth horizontal scrolling
-                textSpacing: 150  // Space between text repeats
-                enableMotionBlur: false  // Disabled - test if shader was causing issues
-                motionBlurRadius: 4  // Subtle blur effect
+                scrollSpeed: 100
+                textSpacing: 150
+                enableMotionBlur: false
+                motionBlurRadius: 4
             }
         }
     }
@@ -99,11 +122,11 @@ Window {
     Image {
         id: bannerImage
         anchors.top: topScroll.bottom
-        anchors.topMargin: 40  // Move down 40px
+        anchors.topMargin: 40
         anchors.left: parent.left
         anchors.right: parent.right
         height: sourceSize.height > 0 ? sourceSize.height : 60
-        source: dataManager.getBannerImagePath()
+        source: configManager.helloLead ? "file:" + configManager.helloLead : ""
         fillMode: Image.PreserveAspectFit
         smooth: true
         asynchronous: true
@@ -123,8 +146,8 @@ Window {
         Component {
             id: fadeBottomScroll
             ScrollingText {
-                text: dataManager.scrollLowerText
-                textColor: mainWindow.textColor  // Orange text
+                text: configManager.helloNews2
+                textColor: mainWindow.textColor
                 backgroundColor: "#1a1a1a"
                 textSize: 40
                 showTopLine: true
@@ -136,16 +159,16 @@ Window {
             id: pixmapBottomScroll
             PixmapScrollingText {
                 anchors.fill: parent
-                text: dataManager.scrollLowerText
-                textColor: mainWindow.textColor  // Orange text
-                lineColor: mainWindow.hoverColor  // White line
+                text: configManager.helloNews2
+                textColor: mainWindow.textColor
+                lineColor: mainWindow.hoverColor
                 backgroundColor: "#1a1a1a"
                 textSize: 40
                 showTopLine: true
-                scrollSpeed: 100  // Adjust for smooth horizontal scrolling
-                textSpacing: 150  // Space between text repeats
-                enableMotionBlur: false  // Disabled - test if shader was causing issues
-                motionBlurRadius: 4  // Subtle blur effect
+                scrollSpeed: 100
+                textSpacing: 150
+                enableMotionBlur: false
+                motionBlurRadius: 4
             }
         }
     }
@@ -175,9 +198,7 @@ Window {
                     anchors.centerIn: parent
                     width: parent.width
                     height: parent.height
-                    source: dataManager.getFacilityLogoPath()
-                    // If image is smaller than container, don't scale up (use actual size)
-                    // If image is larger, scale down to fit
+                    source: configManager.helloMain ? "file:" + configManager.helloMain : ""
                     fillMode: (sourceSize.width > 0 && sourceSize.width <= 1080 && sourceSize.height <= 270)
                               ? Image.Pad : Image.PreserveAspectFit
                     smooth: true
@@ -192,9 +213,7 @@ Window {
                     anchors.centerIn: parent
                     width: parent.width
                     height: parent.height
-                    source: dataManager.getFacilityLogoPath()
-                    // If image is smaller than container, don't scale up (use actual size)
-                    // If image is larger, scale down to fit
+                    source: configManager.helloMain ? "file:" + configManager.helloMain : ""
                     fillMode: (sourceSize.width > 0 && sourceSize.width <= 1080 && sourceSize.height <= 270)
                               ? Image.Pad : Image.PreserveAspectFit
                     smooth: true
@@ -222,7 +241,7 @@ Window {
             width: parent.width * 0.9
             height: Math.min(parent.height * 0.3, 400)
 
-            property bool hasWiperImages: dataManager.getLeftImagePath() !== "" && dataManager.getRightImagePath() !== ""
+            property bool hasWiperImages: configManager.helloShow1 !== "" && configManager.helloShow2 !== ""
 
             // Centered layout when wiper images are missing
             Item {
@@ -234,11 +253,11 @@ Window {
                     anchors.top: parent.top
                     anchors.topMargin: 20
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: dataManager.textRound
+                    text: configManager.helloSpinText
                     font.pixelSize: 36
                     font.weight: Font.Normal
                     font.family: "Open Sans"
-                    color: mainWindow.textColor  // Orange text
+                    color: mainWindow.textColor
                     horizontalAlignment: Text.AlignHCenter
                 }
 
@@ -278,11 +297,11 @@ Window {
                             anchors.top: parent.top
                             anchors.topMargin: 20
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: dataManager.textRound
+                            text: configManager.helloSpinText
                             font.pixelSize: 36
                             font.weight: Font.Normal
                             font.family: "Open Sans"
-                            color: mainWindow.textColor  // Orange text
+                            color: mainWindow.textColor
                             horizontalAlignment: Text.AlignHCenter
                         }
 
@@ -304,9 +323,9 @@ Window {
                     WindshieldWiperImages {
                         id: wiperImages
                         anchors.fill: parent
-                        leftImageSource: dataManager.getLeftImagePath()
-                        rightImageSource: dataManager.getRightImagePath()
-                        carouselIndex: carousel.currentIndex  // Sync with carousel rotation
+                        leftImageSource: configManager.helloShow1 ? "file:" + configManager.helloShow1 : ""
+                        rightImageSource: configManager.helloShow2 ? "file:" + configManager.helloShow2 : ""
+                        carouselIndex: carousel.currentIndex
                     }
                 }
             }
@@ -333,9 +352,9 @@ Window {
                     id: hoursDisplay
                     anchors.fill: parent
                     scheduleData: dataManager.facilityData
-                    textColor: mainWindow.textColor  // Orange text
-                    accentColor: mainWindow.hoverColor  // White boxes/lines
-                    titleText: dataManager.textDaily
+                    textColor: mainWindow.textColor
+                    accentColor: mainWindow.hoverColor
+                    titleText: configManager.helloHourText
                 }
             }
 
@@ -348,9 +367,10 @@ Window {
                     id: playerStats
                     anchors.fill: parent
                     playerData: dataManager.userData
-                    textColor: mainWindow.textColor  // Orange text
-                    accentColor: mainWindow.hoverColor  // White boxes/lines
-                    titleText: dataManager.textCount
+                    platformList: configManager.platformList
+                    textColor: mainWindow.textColor
+                    accentColor: mainWindow.hoverColor
+                    titleText: configManager.helloListText
                 }
             }
         }
@@ -360,11 +380,11 @@ Window {
             id: gameLabLogo
             anchors.bottom: parent.bottom
             anchors.left: parent.left
-            anchors.bottomMargin: -30  // Moved down from 20 to 60
+            anchors.bottomMargin: -30
             anchors.leftMargin: 40
             width: 225
             height: 225
-            source: dataManager.getGameLabGifPath()
+            source: configManager.helloLogo ? "file:" + configManager.helloLogo : ""
             fillMode: Image.PreserveAspectFit
             smooth: true
             playing: true
@@ -374,14 +394,14 @@ Window {
         // QR Code at bottom right (if available)
         Image {
             id: qrCode
-            visible: dataManager.qrCodeAvailable
+            visible: configManager.helloScan !== ""
             anchors.bottom: parent.bottom
             anchors.right: parent.right
             anchors.bottomMargin: 120
             anchors.rightMargin: 0
             width: 350
             height: 500
-            source: visible ? dataManager.getQRCodePath() : ""
+            source: visible && configManager.helloScan ? "file:" + configManager.helloScan : ""
             fillMode: Image.PreserveAspectFit
             smooth: true
             asynchronous: true
@@ -401,46 +421,57 @@ Window {
             hoursDisplay.opacity = 0
             opacityAnimation.start()
         }
+    }
 
-        function onImagesChanged() {
-            // Force reload all images by updating the game images array
-            console.log("Images changed, reloading...")
+    // Config update handler
+    Connections {
+        target: configManager
+
+        function onConfigChanged() {
+            console.log("Config changed, reloading UI...")
+
+            // Update game images array
             mainWindow.gameImages = [
-                dataManager.getGameImagePath(1),
-                dataManager.getGameImagePath(2),
-                dataManager.getGameImagePath(3),
-                dataManager.getGameImagePath(4)
+                configManager.helloSpinImg1,
+                configManager.helloSpinImg2,
+                configManager.helloSpinImg3,
+                configManager.helloSpinImg4
             ]
 
-            // Force reload facility logo by triggering loader refresh
-            logo.sourceComponent = null
-            Qt.callLater(function() {
-                logo.sourceComponent = dataManager.facilityLogoIsGif ? animatedLogoComponent : staticLogoComponent
-            })
-
-            // Force reload banner image
+            // Force reload all images
             var oldBannerSource = bannerImage.source
             bannerImage.source = ""
             Qt.callLater(function() {
-                bannerImage.source = dataManager.getBannerImagePath()
+                bannerImage.source = configManager.helloLead ? "file:" + configManager.helloLead : ""
+            })
+
+            // Force reload facility logo
+            logo.sourceComponent = null
+            Qt.callLater(function() {
+                logo.sourceComponent = configManager.helloMain.endsWith(".gif") ? animatedLogoComponent : staticLogoComponent
             })
 
             // Force reload wiper images
             wiperImages.leftImageSource = ""
             wiperImages.rightImageSource = ""
             Qt.callLater(function() {
-                wiperImages.leftImageSource = dataManager.getLeftImagePath()
-                wiperImages.rightImageSource = dataManager.getRightImagePath()
+                wiperImages.leftImageSource = configManager.helloShow1 ? "file:" + configManager.helloShow1 : ""
+                wiperImages.rightImageSource = configManager.helloShow2 ? "file:" + configManager.helloShow2 : ""
+            })
+
+            // Force reload GameLab logo
+            var oldGameLabSource = gameLabLogo.source
+            gameLabLogo.source = ""
+            Qt.callLater(function() {
+                gameLabLogo.source = configManager.helloLogo ? "file:" + configManager.helloLogo : ""
             })
 
             // Force reload QR code
-            if (qrCode.visible) {
-                var oldQRSource = qrCode.source
-                qrCode.source = ""
-                Qt.callLater(function() {
-                    qrCode.source = dataManager.getQRCodePath()
-                })
-            }
+            var oldQRSource = qrCode.source
+            qrCode.source = ""
+            Qt.callLater(function() {
+                qrCode.source = configManager.helloScan ? "file:" + configManager.helloScan : ""
+            })
         }
     }
 
@@ -452,5 +483,25 @@ Window {
         to: 1.0
         duration: 500
         easing.type: Easing.InOutQuad
+    }
+
+    // Timer App Layer (conditionally visible)
+    TimerApp {
+        id: timerApp
+        anchors.fill: parent
+        visible: configManager.layer0 === "app_timer"
+        z: visible ? 100 : -1
+
+        timerState: configManager.timerState
+        timerCount: configManager.timerCount
+        timerMax: configManager.timerMax
+        timerText: configManager.timerText
+        timerMenuLeft: configManager.timerMenuLeft
+        timerMenuMiddle: configManager.timerMenuMiddle
+        timerMenuRight: configManager.timerMenuRight
+        colorMain: configManager.colorMain
+        colorBg01: configManager.colorBg01
+        colorBg02: configManager.colorBg02
+        colorText: configManager.colorText
     }
 }

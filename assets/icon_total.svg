@@ -1,0 +1,6 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Total/Sum icon - three stacked bars representing total count -->
+  <rect x="12" y="16" width="40" height="8" fill="currentColor" rx="2"/>
+  <rect x="12" y="28" width="40" height="8" fill="currentColor" rx="2"/>
+  <rect x="12" y="40" width="40" height="8" fill="currentColor" rx="2"/>
+</svg>

@@ -12,12 +12,17 @@
         <file>Components/PixmapScrollingText.qml</file>
         <file>Components/SwapImageAnimation.qml</file>
         <file>Components/AnimatedBorderBox.qml</file>
+        <file>Components/TimerApp.qml</file>
         <file>fonts/OpenSans-Regular.ttf</file>
         <file>fonts/OpenSans-Bold.ttf</file>
         <file>fonts/OpenSans-SemiBold.ttf</file>
+        <file>fonts/Countdown.ttf</file>
         <file>assets/icon_xbox.svg</file>
         <file>assets/icon_pc.svg</file>
         <file>assets/icon_switch.svg</file>
         <file>assets/icon_ps5.svg</file>
+        <file>assets/icon_arcade.svg</file>
+        <file>assets/icon_total.svg</file>
+        <file>assets/gamelab-bits.svg</file>
     </qresource>
 </RCC>
