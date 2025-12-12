@@ -43,24 +43,24 @@ Rectangle {
     // --- MAIN CONTENT ---
     Item {
         id: contentContainer
-        anchors.centerIn: parent
-        width: parent.width
-        height: parent.height
+        anchors.fill: parent
+        anchors.topMargin: 40
+        anchors.bottomMargin: 160  // Space for buttons at bottom
 
         ColumnLayout {
             anchors.centerIn: parent
-            spacing: 10 // Reduced spacing between numbers and text
+            spacing: 15
 
             // 1. The Countdown Display with animated bits
             Item {
                 Layout.alignment: Qt.AlignHCenter
-                width: digitsRow.width + animatedBits.width + 20
+                width: digitsRow.width + animatedBits.width + 15
                 height: digitsRow.height
 
                 Row {
                     id: digitsRow
                     anchors.centerIn: parent
-                    spacing: 10 // Spacing between digits
+                    spacing: 8
 
                     // Helper to pad numbers (e.g. 9 -> "09")
                     property string timeString: root.currentTime.toString().padStart(2, '0')
@@ -70,10 +70,10 @@ Rectangle {
                         digitText: digitsRow.timeString.charAt(0)
                         primaryColor: root.colorMain
                         fontFamily: countdownFont.status === FontLoader.Ready ? countdownFont.name : "Arial"
-                        // Bigger Size
-                        width: 160
-                        height: 300
-                        fontSize: 280
+                        // Optimized for 1024x600
+                        width: 120
+                        height: 220
+                        fontSize: 200
                     }
 
                     // ONES DIGIT
@@ -81,22 +81,22 @@ Rectangle {
                         digitText: digitsRow.timeString.charAt(1)
                         primaryColor: root.colorMain
                         fontFamily: countdownFont.status === FontLoader.Ready ? countdownFont.name : "Arial"
-                        // Bigger Size
-                        width: 160
-                        height: 300
-                        fontSize: 280
+                        // Optimized for 1024x600
+                        width: 120
+                        height: 220
+                        fontSize: 200
                     }
                 }
 
                 // Animated Bits - Positioned near the countdown numbers (top right)
                 Image {
                     id: animatedBits
-                    width: 120  // 3x bigger (was 60)
-                    height: 120 // 3x bigger (was 60)
+                    width: 80
+                    height: 80
                     anchors.left: digitsRow.right
                     anchors.top: digitsRow.top
-                    anchors.leftMargin: 20
-                    anchors.topMargin: 10
+                    anchors.leftMargin: 15
+                    anchors.topMargin: 5
                     source: "qrc:/assets/gamelab-bits.svg"
                     fillMode: Image.PreserveAspectFit
                     visible: true
@@ -116,9 +116,9 @@ Rectangle {
                 Layout.alignment: Qt.AlignHCenter
                 text: root.timerText
                 font.family: "Open Sans"
-                font.pixelSize: 42 // Increased slightly
+                font.pixelSize: 32
                 font.bold: true
-                font.letterSpacing: 2
+                font.letterSpacing: 1.5
                 color: root.colorText
             }
         }
@@ -150,14 +150,14 @@ Rectangle {
         id: buttonRow
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottomMargin: 80
-        spacing: 40
+        anchors.bottomMargin: 50
+        spacing: 30
 
         // Button: LEFT (Need More Time)
         Rectangle {
             id: leftButton
-            width: 300; height: 80
-            radius: 10 // Slightly sharper corners per design
+            width: 260; height: 70
+            radius: 10
             color: root.colorMain
             border.color: root.colorMain
             border.width: 3
@@ -169,26 +169,32 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: root.timerMenuLeft
-                font.pixelSize: 24; font.bold: true; color: root.colorText
+                font.pixelSize: 20; font.bold: true; color: root.colorText
             }
 
             MouseArea {
                 id: leftMouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+                cursorShape: Qt.BlankCursor  // Hide cursor when custom cursor is enabled
 
                 onEntered: leftButton.isHovered = true
                 onExited: leftButton.isHovered = false
 
-                onClicked: {
-                    root.currentTime = root.timerMax
-                    root.timerCount = true
-                    leftButton.isHovered = false
-                    Qt.callLater(function() { leftButton.isHovered = leftMouseArea.containsMouse })
-                }
                 onPressed: parent.scale = 0.95
-                onReleased: parent.scale = 1.0
+
+                onReleased: {
+                    parent.scale = 1.0
+                    // Handle the action on release to support both mouse and touch
+                    if (contains(Qt.point(mouseX, mouseY))) {
+                        root.currentTime = root.timerMax
+                        root.timerCount = true
+                    }
+                }
+
+                onCanceled: {
+                    parent.scale = 1.0
+                }
             }
 
             Behavior on scale { NumberAnimation { duration: 100 } }
@@ -198,7 +204,7 @@ Rectangle {
         // Button: MIDDLE
         Rectangle {
             id: middleButton
-            width: 300; height: 80
+            width: 260; height: 70
             radius: 10
             color: "transparent"
             border.color: root.colorMain
@@ -211,25 +217,31 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: root.timerMenuMiddle
-                font.pixelSize: 24; font.bold: true; color: root.colorText
+                font.pixelSize: 20; font.bold: true; color: root.colorText
             }
 
             MouseArea {
                 id: middleMouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+                cursorShape: Qt.BlankCursor  // Hide cursor when custom cursor is enabled
 
                 onEntered: middleButton.isHovered = true
                 onExited: middleButton.isHovered = false
 
-                onClicked: {
-                    console.log("Middle button clicked")
-                    middleButton.isHovered = false
-                    Qt.callLater(function() { middleButton.isHovered = middleMouseArea.containsMouse })
-                }
                 onPressed: parent.scale = 0.95
-                onReleased: parent.scale = 1.0
+
+                onReleased: {
+                    parent.scale = 1.0
+                    // Handle the action on release to support both mouse and touch
+                    if (contains(Qt.point(mouseX, mouseY))) {
+                        console.log("Middle button clicked")
+                    }
+                }
+
+                onCanceled: {
+                    parent.scale = 1.0
+                }
             }
 
             Behavior on scale { NumberAnimation { duration: 100 } }
@@ -239,7 +251,7 @@ Rectangle {
         // Button: RIGHT (Start Over)
         Rectangle {
             id: rightButton
-            width: 300; height: 80
+            width: 260; height: 70
             radius: 10
             color: "transparent"
             border.color: root.colorMain
@@ -252,26 +264,32 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: root.timerMenuRight
-                font.pixelSize: 24; font.bold: true; color: root.colorText
+                font.pixelSize: 20; font.bold: true; color: root.colorText
             }
 
             MouseArea {
                 id: rightMouseArea
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+                cursorShape: Qt.BlankCursor  // Hide cursor when custom cursor is enabled
 
                 onEntered: rightButton.isHovered = true
                 onExited: rightButton.isHovered = false
 
-                onClicked: {
-                    root.currentTime = root.timerMax
-                    // Keep the timer running if it was already running
-                    rightButton.isHovered = false
-                    Qt.callLater(function() { rightButton.isHovered = rightMouseArea.containsMouse })
-                }
                 onPressed: parent.scale = 0.95
-                onReleased: parent.scale = 1.0
+
+                onReleased: {
+                    parent.scale = 1.0
+                    // Handle the action on release to support both mouse and touch
+                    if (contains(Qt.point(mouseX, mouseY))) {
+                        root.currentTime = root.timerMax
+                        // Keep the timer running if it was already running
+                    }
+                }
+
+                onCanceled: {
+                    parent.scale = 1.0
+                }
             }
 
             Behavior on scale { NumberAnimation { duration: 100 } }
@@ -280,12 +298,50 @@ Rectangle {
     }
 
     // --- LOGIC ---
+    // High-precision timer that accounts for animation time
     Timer {
         id: mainTimer
         interval: 1000
         repeat: true
-        running: root.timerCount && root.timerState && root.currentTime > 0
+        // Only run timer when the app is visible AND timer settings allow it
+        running: root.visible && root.timerCount && root.timerState && root.currentTime > 0
+        triggeredOnStart: false
+
+        property real lastTickTime: 0
+        property real drift: 0
+
+        onRunningChanged: {
+            if (running) {
+                // Reset drift tracking when timer starts
+                lastTickTime = Date.now()
+                drift = 0
+            }
+        }
+
         onTriggered: {
+            // Calculate actual time elapsed since last tick
+            var currentTime = Date.now()
+            var elapsed = currentTime - lastTickTime
+
+            // Accumulate drift (difference from expected 1000ms)
+            drift += (elapsed - 1000)
+
+            // Adjust next interval to compensate for drift
+            // If we're running slow (drift > 0), decrease interval
+            // If we're running fast (drift < 0), increase interval
+            var adjustedInterval = 1000 - drift
+
+            // Clamp adjustment to reasonable bounds (900-1100ms)
+            adjustedInterval = Math.max(900, Math.min(1100, adjustedInterval))
+            interval = Math.round(adjustedInterval)
+
+            // Update last tick time
+            lastTickTime = currentTime
+
+            // Reset drift after adjustment
+            drift = 0
+
+            // Decrement counter
             root.currentTime--
             if (root.currentTime === 0) {
                 console.log("Timer Finished")

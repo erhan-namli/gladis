@@ -9,15 +9,34 @@ ConfigManager::ConfigManager(QObject *parent)
     , m_settings(nullptr)
     , m_colorFlip(false)
     , m_helloState(true)
-    , m_renderWidth(1080)
-    , m_renderHeight(1920)
+    , m_renderWidth(1024)
+    , m_renderHeight(600)
     , m_renderRotate(0)
     , m_renderMouse(1)
     , m_mousePoint("mouse_assets/mouse-point.png")
     , m_mouseHover("mouse_assets/mouse-hover.png")
     , m_mouseField("mouse_assets/mouse-field.png")
     , m_mouseDelay("mouse_assets/mouse-delay.png")
-    , m_layer0("app_hello")
+    , m_layer0("")  // Default to empty (layer_0 is front-most)
+    , m_layer1("")
+    , m_layer2("")
+    , m_layer3("")
+    , m_layer4("")
+    , m_layer5("")
+    , m_layer6("")
+    , m_layer7("")
+    , m_layer8("")
+    , m_layer9("")
+    , m_layerTransition0(300)  // Default 300ms fade
+    , m_layerTransition1(300)
+    , m_layerTransition2(300)
+    , m_layerTransition3(300)
+    , m_layerTransition4(300)
+    , m_layerTransition5(300)
+    , m_layerTransition6(300)
+    , m_layerTransition7(300)
+    , m_layerTransition8(300)
+    , m_layerTransition9(300)
     , m_timerState(false)
     , m_timerCount(false)
     , m_timerMax(99)
@@ -25,6 +44,10 @@ ConfigManager::ConfigManager(QObject *parent)
     , m_timerMenuLeft("NEED MORE TIME")
     , m_timerMenuMiddle("")
     , m_timerMenuRight("START OVER")
+    , m_imageSource("")
+    , m_imageBgColor("#000000")
+    , m_imageFillMode(1)  // Qt::KeepAspectRatio (PreserveAspectFit)
+    , m_imageShowBg(false)
 {
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ConfigManager::onFileChanged);
 }
@@ -82,6 +105,10 @@ void ConfigManager::loadConfig()
         return;
     }
 
+    // Store previous render dimensions to detect if they changed
+    int previousRenderWidth = m_renderWidth;
+    int previousRenderHeight = m_renderHeight;
+
     // Clean up old settings object
     if (m_settings) {
         delete m_settings;
@@ -129,8 +156,32 @@ void ConfigManager::loadConfig()
 
     // Load render properties from app_live section
     m_settings->beginGroup("app_live");
-    m_layer0 = m_settings->value("layer_0", "app_hello").toString();
-    QString renderWindow = m_settings->value("render_window", "1080;1920").toString();
+
+    // Load all layers (layer_0 is front-most)
+    m_layer0 = m_settings->value("layer_0", "").toString();
+    m_layer1 = m_settings->value("layer_1", "").toString();
+    m_layer2 = m_settings->value("layer_2", "").toString();
+    m_layer3 = m_settings->value("layer_3", "").toString();
+    m_layer4 = m_settings->value("layer_4", "").toString();
+    m_layer5 = m_settings->value("layer_5", "").toString();
+    m_layer6 = m_settings->value("layer_6", "").toString();
+    m_layer7 = m_settings->value("layer_7", "").toString();
+    m_layer8 = m_settings->value("layer_8", "").toString();
+    m_layer9 = m_settings->value("layer_9", "").toString();
+
+    // Load layer transition times (in milliseconds)
+    m_layerTransition0 = m_settings->value("layer_transition_0", 300).toInt();
+    m_layerTransition1 = m_settings->value("layer_transition_1", 300).toInt();
+    m_layerTransition2 = m_settings->value("layer_transition_2", 300).toInt();
+    m_layerTransition3 = m_settings->value("layer_transition_3", 300).toInt();
+    m_layerTransition4 = m_settings->value("layer_transition_4", 300).toInt();
+    m_layerTransition5 = m_settings->value("layer_transition_5", 300).toInt();
+    m_layerTransition6 = m_settings->value("layer_transition_6", 300).toInt();
+    m_layerTransition7 = m_settings->value("layer_transition_7", 300).toInt();
+    m_layerTransition8 = m_settings->value("layer_transition_8", 300).toInt();
+    m_layerTransition9 = m_settings->value("layer_transition_9", 300).toInt();
+
+    QString renderWindow = m_settings->value("render_window", "1024;600").toString();  // Default to 1024x600
     QStringList dimensions = renderWindow.split(';');
     if (dimensions.size() == 2) {
         m_renderWidth = dimensions[0].toInt();
@@ -144,7 +195,17 @@ void ConfigManager::loadConfig()
     m_mouseDelay = m_settings->value("mouse-delay", "mouse_assets/mouse-delay.png").toString();
     m_settings->endGroup();
 
-    qDebug() << "Active layer (layer_0):" << m_layer0;
+    qDebug() << "Layers (0=front-most):";
+    qDebug() << "  layer_0:" << m_layer0 << "(transition:" << m_layerTransition0 << "ms)";
+    qDebug() << "  layer_1:" << m_layer1 << "(transition:" << m_layerTransition1 << "ms)";
+    qDebug() << "  layer_2:" << m_layer2 << "(transition:" << m_layerTransition2 << "ms)";
+    qDebug() << "  layer_3:" << m_layer3 << "(transition:" << m_layerTransition3 << "ms)";
+    qDebug() << "  layer_4:" << m_layer4 << "(transition:" << m_layerTransition4 << "ms)";
+    qDebug() << "  layer_5:" << m_layer5 << "(transition:" << m_layerTransition5 << "ms)";
+    qDebug() << "  layer_6:" << m_layer6 << "(transition:" << m_layerTransition6 << "ms)";
+    qDebug() << "  layer_7:" << m_layer7 << "(transition:" << m_layerTransition7 << "ms)";
+    qDebug() << "  layer_8:" << m_layer8 << "(transition:" << m_layerTransition8 << "ms)";
+    qDebug() << "  layer_9:" << m_layer9 << "(transition:" << m_layerTransition9 << "ms)";
     qDebug() << "Render dimensions:" << m_renderWidth << "x" << m_renderHeight << "Rotation:" << m_renderRotate;
     qDebug() << "Custom mouse cursor:" << (m_renderMouse ? "enabled" : "disabled");
 
@@ -162,7 +223,24 @@ void ConfigManager::loadConfig()
     qDebug() << "Timer config - State:" << m_timerState << "Count:" << m_timerCount << "Max:" << m_timerMax;
     qDebug() << "Timer text:" << m_timerText;
 
+    // Load App Image section
+    m_settings->beginGroup("app_image");
+    m_imageSource = m_settings->value("image_source", "").toString();
+    m_imageBgColor = m_settings->value("image_bg_color", "#000000").toString();
+    m_imageFillMode = m_settings->value("image_fill_mode", 1).toInt();  // 0=Stretch, 1=PreserveAspectFit, 2=PreserveAspectCrop
+    m_imageShowBg = m_settings->value("image_show_bg", 0).toInt() == 1;
+    m_settings->endGroup();
+
+    qDebug() << "Image config - Source:" << m_imageSource << "FillMode:" << m_imageFillMode << "ShowBg:" << m_imageShowBg;
+
     qDebug() << "Config loaded successfully";
+
+    // Check if resolution actually changed
+    bool resolutionChanged = (m_renderWidth != previousRenderWidth || m_renderHeight != previousRenderHeight);
+    if (resolutionChanged) {
+        qDebug() << "Resolution changed from" << previousRenderWidth << "x" << previousRenderHeight
+                 << "to" << m_renderWidth << "x" << m_renderHeight;
+    }
 
     emit configChanged();
 }

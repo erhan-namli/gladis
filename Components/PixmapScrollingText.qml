@@ -83,6 +83,14 @@ Rectangle {
                 width = implicitWidth
                 height = implicitHeight
             }
+
+            // Watch for text changes and notify when width updates
+            onImplicitWidthChanged: {
+                // Width has been recalculated, trigger restart timer
+                if (restartTimer.waitingForUpdate) {
+                    restartTimer.start()
+                }
+            }
         }
 
         // Scrolling container with repeated text
@@ -180,6 +188,22 @@ Rectangle {
             })
         }
 
+        // Timer to restart animation after text updates
+        Timer {
+            id: restartTimer
+            interval: 50  // Small delay to ensure layout recalculation
+            repeat: false
+            property bool waitingForUpdate: false
+
+            onTriggered: {
+                waitingForUpdate = false
+                // Ensure text width is valid before starting
+                if (sourceText.implicitWidth > 0 && root.text !== "") {
+                    scrollAnimation.start()
+                }
+            }
+        }
+
         // Watch for text changes and restart animation
         Connections {
             target: root
@@ -190,12 +214,15 @@ Rectangle {
                 // Reset position to start
                 scrollingRow.x = 0
 
-                // Wait for sourceText to update its width, then restart
-                Qt.callLater(function() {
-                    if (sourceText.width > 0 && root.text !== "") {
-                        scrollAnimation.start()
-                    }
-                })
+                // Mark that we're waiting for width update
+                restartTimer.waitingForUpdate = true
+
+                // Force sourceText to recalculate by explicitly setting width
+                sourceText.width = Qt.binding(function() { return sourceText.implicitWidth })
+                sourceText.height = Qt.binding(function() { return sourceText.implicitHeight })
+
+                // Start the restart timer (will be restarted if implicitWidth changes)
+                restartTimer.start()
             }
         }
     }

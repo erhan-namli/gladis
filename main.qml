@@ -6,17 +6,29 @@ Window {
     id: mainWindow
     visible: true
     visibility: Window.FullScreen
-    // Dynamic resolution from config (default 1080x1920 portrait for app_hello)
-    width: configManager.renderWidth
-    height: configManager.renderHeight
+    // Resolution set once at startup, doesn't change during runtime
+    width: 1024
+    height: 600
     title: "GameLab Esports Dashboard"
     color: "#333333"
 
+    // Hide system cursor when custom cursor is enabled
+    flags: Qt.Window | Qt.FramelessWindowHint
+
+    Component.onCompleted: {
+        // Set resolution from config once at startup
+        mainWindow.width = configManager.renderWidth
+        mainWindow.height = configManager.renderHeight
+
+        if (configManager.renderMouse === 1) {
+            Qt.application.overrideCursor = Qt.BlankCursor
+        }
+
+        console.log("Window initialized at", mainWindow.width, "x", mainWindow.height)
+    }
+
     // Detect orientation
     property bool isPortrait: height > width
-
-    // Active layer from config
-    property string activeLayer: configManager.layer0
 
     // Handle resolution changes
     onWidthChanged: {
@@ -52,7 +64,7 @@ Window {
         source: "qrc:/fonts/OpenSans-SemiBold.ttf"
     }
 
-    // Color properties from config (dynamically loaded from glad is.ini)
+    // Color properties from config (dynamically loaded from gladis.ini)
     property string primaryColor: configManager.colorBg01
     property string accentColor: configManager.colorBg02
     property string textColor: configManager.colorText
@@ -66,8 +78,17 @@ Window {
         configManager.helloSpinImg4
     ]
 
-
-// OLD CONTENT MOVED TO HelloApp.qml (will create next)
+    // Global MouseArea to hide system cursor
+    // Note: This should be BEHIND all interactive elements
+    MouseArea {
+        anchors.fill: parent
+        enabled: configManager.renderMouse === 1
+        cursorShape: Qt.BlankCursor
+        propagateComposedEvents: true
+        acceptedButtons: Qt.NoButton
+        hoverEnabled: false
+        z: -1  // Behind everything to not block interactions
+    }
 
     // Background with gradient using facility colors
     Rectangle {
@@ -78,438 +99,479 @@ Window {
         }
     }
 
-    // Top scrolling banner (switchable between fade carousel and pixmap scrolling)
+    // ===== DYNAMIC LAYER SYSTEM =====
+    // Layer 0 is front-most (highest z-index)
+    // Layers stack on top of each other like z-index in CSS
+    // Empty layers show nothing
+
+    // Layer 9 (bottom-most layer, z: 10)
     Loader {
-        id: topScroll
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: 60
+        id: layer9Loader
+        anchors.fill: parent
+        z: 10
+        active: configManager.layer9 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
 
-        sourceComponent: mainWindow.usePixmapScrolling ? pixmapTopScroll : fadeTopScroll
-
-        Component {
-            id: fadeTopScroll
-            ScrollingText {
-                text: configManager.helloNews1
-                textColor: mainWindow.textColor
-                backgroundColor: "#1a1a1a"
-                textSize: 40
-                showBottomLine: true
-                scrollSpeed: 150
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition9
+                easing.type: Easing.InOutQuad
             }
         }
 
-        Component {
-            id: pixmapTopScroll
-            PixmapScrollingText {
-                anchors.fill: parent
-                text: configManager.helloNews1
-                textColor: mainWindow.textColor
-                lineColor: mainWindow.hoverColor
-                backgroundColor: "#1a1a1a"
-                textSize: 40
-                showBottomLine: true
-                scrollSpeed: 100
-                textSpacing: 150
-                enableMotionBlur: false
-                motionBlurRadius: 4
+        source: {
+            var appName = configManager.layer9
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 9 loaded:", configManager.layer9)
+            // Pass properties to the loaded component if needed
+            if (item && configManager.layer9 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
             }
         }
     }
 
-    // Stationary banner image
-    Image {
-        id: bannerImage
-        anchors.top: topScroll.bottom
-        anchors.topMargin: 40
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: sourceSize.height > 0 ? sourceSize.height : 60
-        source: configManager.helloLead ? "file:" + configManager.helloLead : ""
-        fillMode: Image.PreserveAspectFit
-        smooth: true
-        asynchronous: true
-        visible: status === Image.Ready
-    }
-
-    // Bottom scrolling banner (switchable between fade carousel and pixmap scrolling)
+    // Layer 8 (z: 20)
     Loader {
-        id: bottomScroll
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        height: 60
+        id: layer8Loader
+        anchors.fill: parent
+        z: 20
+        active: configManager.layer8 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
 
-        sourceComponent: mainWindow.usePixmapScrolling ? pixmapBottomScroll : fadeBottomScroll
-
-        Component {
-            id: fadeBottomScroll
-            ScrollingText {
-                text: configManager.helloNews2
-                textColor: mainWindow.textColor
-                backgroundColor: "#1a1a1a"
-                textSize: 40
-                showTopLine: true
-                scrollSpeed: 150
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition8
+                easing.type: Easing.InOutQuad
             }
         }
 
-        Component {
-            id: pixmapBottomScroll
-            PixmapScrollingText {
-                anchors.fill: parent
-                text: configManager.helloNews2
-                textColor: mainWindow.textColor
-                lineColor: mainWindow.hoverColor
-                backgroundColor: "#1a1a1a"
-                textSize: 40
-                showTopLine: true
-                scrollSpeed: 100
-                textSpacing: 150
-                enableMotionBlur: false
-                motionBlurRadius: 4
+        source: {
+            var appName = configManager.layer8
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 8 loaded:", configManager.layer8)
+            if (item && configManager.layer8 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
             }
         }
     }
 
-    // Logo area: 1080x270px, positioned at (0, 270) from top corner of viewport
-    // If logo is 1080x270: display as-is
-    // If smaller: center without scaling
-    // If larger: scale down proportionally to fit
+    // Layer 7 (z: 30)
+    Loader {
+        id: layer7Loader
+        anchors.fill: parent
+        z: 30
+        active: configManager.layer7 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition7
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer7
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 7 loaded:", configManager.layer7)
+            if (item && configManager.layer7 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Layer 6 (z: 40)
+    Loader {
+        id: layer6Loader
+        anchors.fill: parent
+        z: 40
+        active: configManager.layer6 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition6
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer6
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 6 loaded:", configManager.layer6)
+            if (item && configManager.layer6 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Layer 5 (z: 50)
+    Loader {
+        id: layer5Loader
+        anchors.fill: parent
+        z: 50
+        active: configManager.layer5 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition5
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer5
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 5 loaded:", configManager.layer5)
+            if (item && configManager.layer5 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Layer 4 (z: 60)
+    Loader {
+        id: layer4Loader
+        anchors.fill: parent
+        z: 60
+        active: configManager.layer4 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition4
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer4
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 4 loaded:", configManager.layer4)
+            if (item && configManager.layer4 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Layer 3 (z: 70)
+    Loader {
+        id: layer3Loader
+        anchors.fill: parent
+        z: 70
+        active: configManager.layer3 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition3
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        onLoaded: {
+            console.log("Layer 3 loaded:", configManager.layer3)
+            if (item && configManager.layer3 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+
+        source: {
+            var appName = configManager.layer3
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+    }
+
+    // Layer 2 (z: 80)
+    Loader {
+        id: layer2Loader
+        anchors.fill: parent
+        z: 80
+        active: configManager.layer2 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition2
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer2
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 2 loaded:", configManager.layer2)
+            if (item && configManager.layer2 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Layer 1 (z: 90)
+    Loader {
+        id: layer1Loader
+        anchors.fill: parent
+        z: 90
+        active: configManager.layer1 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition1
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer1
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 1 loaded:", configManager.layer1)
+            if (item && configManager.layer1 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Layer 0 (front-most layer, z: 100)
+    Loader {
+        id: layer0Loader
+        anchors.fill: parent
+        z: 100
+        active: configManager.layer0 !== ""
+        opacity: active ? 1.0 : 0.0
+        visible: opacity > 0.01
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: configManager.layerTransition0
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        source: {
+            var appName = configManager.layer0
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            return ""
+        }
+
+        onLoaded: {
+            console.log("Layer 0 loaded:", configManager.layer0)
+            if (item && configManager.layer0 === "app_timer") {
+                item.timerState = Qt.binding(function() { return configManager.timerState })
+                item.timerCount = Qt.binding(function() { return configManager.timerCount })
+                item.timerMax = Qt.binding(function() { return configManager.timerMax })
+                item.timerText = Qt.binding(function() { return configManager.timerText })
+                item.timerMenuLeft = Qt.binding(function() { return configManager.timerMenuLeft })
+                item.timerMenuMiddle = Qt.binding(function() { return configManager.timerMenuMiddle })
+                item.timerMenuRight = Qt.binding(function() { return configManager.timerMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+        }
+    }
+
+    // Custom Cursor (tracking layer behind interactive elements)
     Item {
-        id: logoContainer
-        x: 0
-        y: 270
-        width: 1080
-        height: 270
-        anchors.horizontalCenter: parent.horizontalCenter
+        id: cursorTracker
+        anchors.fill: parent
+        z: -10  // Well behind everything to not interfere
 
-        Loader {
-            id: logo
+        property real mouseX: 0
+        property real mouseY: 0
+
+        MouseArea {
             anchors.fill: parent
+            propagateComposedEvents: true
+            acceptedButtons: Qt.NoButton
+            hoverEnabled: true
 
-            sourceComponent: dataManager.facilityLogoIsGif ? animatedLogoComponent : staticLogoComponent
-
-            Component {
-                id: staticLogoComponent
-                Image {
-                    id: logoImage
-                    anchors.centerIn: parent
-                    width: parent.width
-                    height: parent.height
-                    source: configManager.helloMain ? "file:" + configManager.helloMain : ""
-                    fillMode: (sourceSize.width > 0 && sourceSize.width <= 1080 && sourceSize.height <= 270)
-                              ? Image.Pad : Image.PreserveAspectFit
-                    smooth: true
-                    asynchronous: true
-                }
-            }
-
-            Component {
-                id: animatedLogoComponent
-                AnimatedImage {
-                    id: animatedLogoImage
-                    anchors.centerIn: parent
-                    width: parent.width
-                    height: parent.height
-                    source: configManager.helloMain ? "file:" + configManager.helloMain : ""
-                    fillMode: (sourceSize.width > 0 && sourceSize.width <= 1080 && sourceSize.height <= 270)
-                              ? Image.Pad : Image.PreserveAspectFit
-                    smooth: true
-                    playing: true
-                }
+            onPositionChanged: function(mouse) {
+                cursorTracker.mouseX = mouse.x
+                cursorTracker.mouseY = mouse.y
+                mouse.accepted = false
             }
         }
     }
 
-    // Main content area
-    Item {
-        id: mainContent
-        anchors.top: logoContainer.bottom
-        anchors.topMargin: -60
-        anchors.bottom: bottomScroll.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+    // Custom cursor image on top
+    Image {
+        id: customCursorImage
+        width: 32
+        height: 32
+        visible: configManager.renderMouse === 1
+        smooth: true
+        z: 10000  // On top for visibility only
 
-        // NEW RELEASES section: Carousel on left (vertical with title), WindshieldWiper on right
-        Item {
-            id: newReleasesArea
-            anchors.top: parent.top
-            anchors.topMargin: 120
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width * 0.9
-            height: Math.min(parent.height * 0.3, 400)
+        x: cursorTracker.mouseX
+        y: cursorTracker.mouseY
 
-            property bool hasWiperImages: configManager.helloShow1 !== "" && configManager.helloShow2 !== ""
-
-            // Centered layout when wiper images are missing
-            Item {
-                visible: !newReleasesArea.hasWiperImages
-                anchors.fill: parent
-
-                // NEW RELEASES Title
-                Text {
-                    anchors.top: parent.top
-                    anchors.topMargin: 20
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: configManager.helloSpinText
-                    font.pixelSize: 36
-                    font.weight: Font.Normal
-                    font.family: "Open Sans"
-                    color: mainWindow.textColor
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                // Carousel below title (centered)
-                Item {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width * 0.5
-                    height: parent.height
-
-                    CarouselView {
-                        id: carouselCentered
-                        anchors.fill: parent
-                        gameImages: mainWindow.gameImages
-                    }
-                }
+        source: {
+            var filePath = configManager.mousePoint
+            if (!filePath || filePath === "") {
+                return ""
             }
-
-            // Row container for left and right sections (when wiper images exist)
-            Row {
-                id: newReleasesRow
-                visible: newReleasesArea.hasWiperImages
-                anchors.fill: parent
-                spacing: 20
-
-                // Left side: NEW RELEASES title + Carousel (vertical layout)
-                Item {
-                    width: (parent.width - parent.spacing) / 2
-                    height: parent.height
-
-                    Item {
-                        anchors.fill: parent
-
-                        // NEW RELEASES Title
-                        Text {
-                            id: newReleasesTitle
-                            anchors.top: parent.top
-                            anchors.topMargin: 20
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: configManager.helloSpinText
-                            font.pixelSize: 36
-                            font.weight: Font.Normal
-                            font.family: "Open Sans"
-                            color: mainWindow.textColor
-                            horizontalAlignment: Text.AlignHCenter
-                        }
-
-                        // Carousel below title
-                        CarouselView {
-                            id: carousel
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.verticalCenter: parent.verticalCenter
-                            gameImages: mainWindow.gameImages
-                        }
-                    }
-                }
-
-                // Right side: WindshieldWiper animation
-                Item {
-                    width: (parent.width - parent.spacing) / 2
-                    height: parent.height
-
-                    WindshieldWiperImages {
-                        id: wiperImages
-                        anchors.fill: parent
-                        leftImageSource: configManager.helloShow1 ? "file:" + configManager.helloShow1 : ""
-                        rightImageSource: configManager.helloShow2 ? "file:" + configManager.helloShow2 : ""
-                        carouselIndex: carousel.currentIndex
-                    }
-                }
+            if (filePath.startsWith("qrc:/") || filePath.startsWith("file:")) {
+                return filePath
+            } else if (filePath.startsWith("/")) {
+                return "file:" + filePath
+            } else {
+                return "qrc:/" + filePath
             }
         }
-
-        // Hours and Players row
-        Row {
-            id: statsRow
-            anchors.top: newReleasesArea.bottom
-            anchors.topMargin: 40// Balanced spacing - closer than original but not too tight
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: 40
-            anchors.rightMargin: 40
-            height: Math.min(parent.height * 0.55, 850)
-            spacing: 30
-
-            // LAB HOURS (left side)
-            Item {
-                width: (parent.width - parent.spacing) / 2
-                height: parent.height
-
-                HoursDisplay {
-                    id: hoursDisplay
-                    anchors.fill: parent
-                    scheduleData: dataManager.facilityData
-                    textColor: mainWindow.textColor
-                    accentColor: mainWindow.hoverColor
-                    titleText: configManager.helloHourText
-                }
-            }
-
-            // PLAYERS (right side)
-            Item {
-                width: (parent.width - parent.spacing) / 2
-                height: parent.height
-
-                PlayerStats {
-                    id: playerStats
-                    anchors.fill: parent
-                    playerData: dataManager.userData
-                    platformList: configManager.platformList
-                    textColor: mainWindow.textColor
-                    accentColor: mainWindow.hoverColor
-                    titleText: configManager.helloListText
-                }
-            }
-        }
-
-        // GameLab animated GIF logo at bottom left
-        AnimatedImage {
-            id: gameLabLogo
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.bottomMargin: -30
-            anchors.leftMargin: 40
-            width: 225
-            height: 225
-            source: configManager.helloLogo ? "file:" + configManager.helloLogo : ""
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            playing: true
-            visible: source !== ""
-        }
-
-        // QR Code at bottom right (if available)
-        Image {
-            id: qrCode
-            visible: configManager.helloScan !== ""
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
-            anchors.bottomMargin: 120
-            anchors.rightMargin: 0
-            width: 350
-            height: 500
-            source: visible && configManager.helloScan ? "file:" + configManager.helloScan : ""
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            asynchronous: true
-        }
-    }
-
-    // Data update animations
-    Connections {
-        target: dataManager
-
-        function onUserDataChanged() {
-            playerStats.opacity = 0
-            opacityAnimation.start()
-        }
-
-        function onFacilityDataChanged() {
-            hoursDisplay.opacity = 0
-            opacityAnimation.start()
-        }
-    }
-
-    // Config update handler
-    Connections {
-        target: configManager
-
-        function onConfigChanged() {
-            console.log("Config changed, reloading UI...")
-
-            // Update game images array
-            mainWindow.gameImages = [
-                configManager.helloSpinImg1,
-                configManager.helloSpinImg2,
-                configManager.helloSpinImg3,
-                configManager.helloSpinImg4
-            ]
-
-            // Force reload all images
-            var oldBannerSource = bannerImage.source
-            bannerImage.source = ""
-            Qt.callLater(function() {
-                bannerImage.source = configManager.helloLead ? "file:" + configManager.helloLead : ""
-            })
-
-            // Force reload facility logo
-            logo.sourceComponent = null
-            Qt.callLater(function() {
-                logo.sourceComponent = configManager.helloMain.endsWith(".gif") ? animatedLogoComponent : staticLogoComponent
-            })
-
-            // Force reload wiper images
-            wiperImages.leftImageSource = ""
-            wiperImages.rightImageSource = ""
-            Qt.callLater(function() {
-                wiperImages.leftImageSource = configManager.helloShow1 ? "file:" + configManager.helloShow1 : ""
-                wiperImages.rightImageSource = configManager.helloShow2 ? "file:" + configManager.helloShow2 : ""
-            })
-
-            // Force reload GameLab logo
-            var oldGameLabSource = gameLabLogo.source
-            gameLabLogo.source = ""
-            Qt.callLater(function() {
-                gameLabLogo.source = configManager.helloLogo ? "file:" + configManager.helloLogo : ""
-            })
-
-            // Force reload QR code
-            var oldQRSource = qrCode.source
-            qrCode.source = ""
-            Qt.callLater(function() {
-                qrCode.source = configManager.helloScan ? "file:" + configManager.helloScan : ""
-            })
-        }
-    }
-
-    // Fade in animation for data updates
-    NumberAnimation {
-        id: opacityAnimation
-        targets: [playerStats, hoursDisplay]
-        property: "opacity"
-        to: 1.0
-        duration: 500
-        easing.type: Easing.InOutQuad
-    }
-
-    // Timer App Layer (conditionally visible)
-    TimerApp {
-        id: timerApp
-        anchors.fill: parent
-        visible: configManager.layer0 === "app_timer"
-        z: visible ? 100 : -1
-
-        timerState: configManager.timerState
-        timerCount: configManager.timerCount
-        timerMax: configManager.timerMax
-        timerText: configManager.timerText
-        timerMenuLeft: configManager.timerMenuLeft
-        timerMenuMiddle: configManager.timerMenuMiddle
-        timerMenuRight: configManager.timerMenuRight
-        colorMain: configManager.colorMain
-        colorBg01: configManager.colorBg01
-        colorBg02: configManager.colorBg02
-        colorText: configManager.colorText
-    }
-
-    // Custom Cursor (always on top)
-    CustomCursor {
-        id: customCursor
-        anchors.fill: parent
-        z: 10000
-        enabled: configManager.renderMouse === 1
     }
 }

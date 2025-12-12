@@ -52,8 +52,29 @@ class ConfigManager : public QObject
     Q_PROPERTY(QString mouseField READ mouseField NOTIFY configChanged)
     Q_PROPERTY(QString mouseDelay READ mouseDelay NOTIFY configChanged)
 
-    // App Live properties
+    // App Live properties - Layer system (layer_0 is front-most)
     Q_PROPERTY(QString layer0 READ layer0 NOTIFY configChanged)
+    Q_PROPERTY(QString layer1 READ layer1 NOTIFY configChanged)
+    Q_PROPERTY(QString layer2 READ layer2 NOTIFY configChanged)
+    Q_PROPERTY(QString layer3 READ layer3 NOTIFY configChanged)
+    Q_PROPERTY(QString layer4 READ layer4 NOTIFY configChanged)
+    Q_PROPERTY(QString layer5 READ layer5 NOTIFY configChanged)
+    Q_PROPERTY(QString layer6 READ layer6 NOTIFY configChanged)
+    Q_PROPERTY(QString layer7 READ layer7 NOTIFY configChanged)
+    Q_PROPERTY(QString layer8 READ layer8 NOTIFY configChanged)
+    Q_PROPERTY(QString layer9 READ layer9 NOTIFY configChanged)
+
+    // Layer transition times (opacity fade duration in milliseconds)
+    Q_PROPERTY(int layerTransition0 READ layerTransition0 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition1 READ layerTransition1 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition2 READ layerTransition2 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition3 READ layerTransition3 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition4 READ layerTransition4 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition5 READ layerTransition5 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition6 READ layerTransition6 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition7 READ layerTransition7 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition8 READ layerTransition8 NOTIFY configChanged)
+    Q_PROPERTY(int layerTransition9 READ layerTransition9 NOTIFY configChanged)
 
     // App Timer Properties
     Q_PROPERTY(bool timerState READ timerState NOTIFY configChanged)
@@ -63,6 +84,12 @@ class ConfigManager : public QObject
     Q_PROPERTY(QString timerMenuLeft READ timerMenuLeft NOTIFY configChanged)
     Q_PROPERTY(QString timerMenuMiddle READ timerMenuMiddle NOTIFY configChanged)
     Q_PROPERTY(QString timerMenuRight READ timerMenuRight NOTIFY configChanged)
+
+    // App Image Properties
+    Q_PROPERTY(QString imageSource READ imageSource NOTIFY configChanged)
+    Q_PROPERTY(QString imageBgColor READ imageBgColor NOTIFY configChanged)
+    Q_PROPERTY(int imageFillMode READ imageFillMode NOTIFY configChanged)
+    Q_PROPERTY(bool imageShowBg READ imageShowBg NOTIFY configChanged)
 
 public:
     explicit ConfigManager(QObject *parent = nullptr);
@@ -111,8 +138,29 @@ public:
     QString mouseField() const { return m_mouseField; }
     QString mouseDelay() const { return m_mouseDelay; }
 
-    // Getters for app live
+    // Getters for app live - Layers
     QString layer0() const { return m_layer0; }
+    QString layer1() const { return m_layer1; }
+    QString layer2() const { return m_layer2; }
+    QString layer3() const { return m_layer3; }
+    QString layer4() const { return m_layer4; }
+    QString layer5() const { return m_layer5; }
+    QString layer6() const { return m_layer6; }
+    QString layer7() const { return m_layer7; }
+    QString layer8() const { return m_layer8; }
+    QString layer9() const { return m_layer9; }
+
+    // Getters for layer transitions
+    int layerTransition0() const { return m_layerTransition0; }
+    int layerTransition1() const { return m_layerTransition1; }
+    int layerTransition2() const { return m_layerTransition2; }
+    int layerTransition3() const { return m_layerTransition3; }
+    int layerTransition4() const { return m_layerTransition4; }
+    int layerTransition5() const { return m_layerTransition5; }
+    int layerTransition6() const { return m_layerTransition6; }
+    int layerTransition7() const { return m_layerTransition7; }
+    int layerTransition8() const { return m_layerTransition8; }
+    int layerTransition9() const { return m_layerTransition9; }
 
     // Getters for timer
     bool timerState() const { return m_timerState; }
@@ -122,6 +170,12 @@ public:
     QString timerMenuLeft() const { return m_timerMenuLeft; }
     QString timerMenuMiddle() const { return m_timerMenuMiddle; }
     QString timerMenuRight() const { return m_timerMenuRight; }
+
+    // Getters for image app
+    QString imageSource() const { return m_imageSource; }
+    QString imageBgColor() const { return m_imageBgColor; }
+    int imageFillMode() const { return m_imageFillMode; }
+    bool imageShowBg() const { return m_imageShowBg; }
 
 signals:
     void configChanged();
@@ -177,8 +231,29 @@ private:
     QString m_mouseField;
     QString m_mouseDelay;
 
-    // App live properties
+    // App live properties - Layers (layer_0 is front-most, higher z-index)
     QString m_layer0;
+    QString m_layer1;
+    QString m_layer2;
+    QString m_layer3;
+    QString m_layer4;
+    QString m_layer5;
+    QString m_layer6;
+    QString m_layer7;
+    QString m_layer8;
+    QString m_layer9;
+
+    // Layer transition times (in milliseconds)
+    int m_layerTransition0;
+    int m_layerTransition1;
+    int m_layerTransition2;
+    int m_layerTransition3;
+    int m_layerTransition4;
+    int m_layerTransition5;
+    int m_layerTransition6;
+    int m_layerTransition7;
+    int m_layerTransition8;
+    int m_layerTransition9;
 
     // App Timer properties
     bool m_timerState;
@@ -188,6 +263,12 @@ private:
     QString m_timerMenuLeft;
     QString m_timerMenuMiddle;
     QString m_timerMenuRight;
+
+    // App Image properties
+    QString m_imageSource;
+    QString m_imageBgColor;
+    int m_imageFillMode;  // Qt::AspectRatioMode enum value
+    bool m_imageShowBg;
 };
 
 #endif // CONFIGMANAGER_H

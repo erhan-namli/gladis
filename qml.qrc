@@ -13,6 +13,8 @@
         <file>Components/SwapImageAnimation.qml</file>
         <file>Components/AnimatedBorderBox.qml</file>
         <file>Components/TimerApp.qml</file>
+        <file>Components/WelcomeApp.qml</file>
+        <file>Components/ImageApp.qml</file>
         <file>Components/CustomCursor.qml</file>
         <file>fonts/OpenSans-Regular.ttf</file>
         <file>fonts/OpenSans-Bold.ttf</file>

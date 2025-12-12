@@ -32,8 +32,8 @@ Item {
         z: 10000 // Always on top
 
         // Position follows mouse
-        x: mouseTracker.mouseX
-        y: mouseTracker.mouseY
+        x: cursorManager.mouseX
+        y: cursorManager.mouseY
 
         // Change cursor based on type
         source: {
@@ -79,45 +79,35 @@ Item {
         }
     }
 
-    // Mouse area to track cursor position across the entire window
+    // Mouse position properties (no MouseArea to avoid blocking events)
+    property real mouseX: 0
+    property real mouseY: 0
+
+    // Mouse tracking via invisible MouseArea that doesn't block events
     MouseArea {
         id: mouseTracker
         anchors.fill: parent
-        hoverEnabled: false  // Disabled to allow hover events to reach buttons
         propagateComposedEvents: true
-        acceptedButtons: Qt.AllButtons // Accept all buttons
-        cursorShape: Qt.BlankCursor  // Hide system cursor
-        enabled: false  // Disabled for events, only used for cursor hiding
-
-        property real mouseX: 0
-        property real mouseY: 0
-    }
-
-    // Use a Timer to track mouse position instead
-    Timer {
-        interval: 16  // ~60 FPS
-        running: cursorManager.enabled
-        repeat: true
-        onTriggered: {
-            var pos = cursorManager.mapFromGlobal(Qt.point(cursorManager.Window.window ? cursorManager.Window.window.mouseX : 0,
-                                                            cursorManager.Window.window ? cursorManager.Window.window.mouseY : 0))
-            mouseTracker.mouseX = pos.x
-            mouseTracker.mouseY = pos.y
-        }
-    }
-
-    // Global mouse position tracker
-    MouseArea {
-        id: globalTracker
-        anchors.fill: parent
-        propagateComposedEvents: true
-        acceptedButtons: Qt.NoButton
+        acceptedButtons: Qt.NoButton  // Don't accept any button clicks
         hoverEnabled: true
+        preventStealing: false
 
         onPositionChanged: function(mouse) {
-            mouseTracker.mouseX = mouse.x
-            mouseTracker.mouseY = mouse.y
-            mouse.accepted = false  // Allow events to pass through
+            cursorManager.mouseX = mouse.x
+            cursorManager.mouseY = mouse.y
+            mouse.accepted = false  // Pass event through
+        }
+
+        onPressed: function(mouse) {
+            mouse.accepted = false  // Pass event through
+        }
+
+        onReleased: function(mouse) {
+            mouse.accepted = false  // Pass event through
+        }
+
+        onClicked: function(mouse) {
+            mouse.accepted = false  // Pass event through
         }
     }
 
