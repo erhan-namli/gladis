@@ -9,6 +9,7 @@ ConfigManager::ConfigManager(QObject *parent)
     , m_settings(nullptr)
     , m_colorFlip(false)
     , m_helloState(true)
+    , m_renderScreen(0)
     , m_renderWidth(1024)
     , m_renderHeight(600)
     , m_renderRotate(0)
@@ -157,6 +158,8 @@ void ConfigManager::loadConfig()
     // Load render properties from app_live section
     m_settings->beginGroup("app_live");
 
+    m_renderScreen = m_settings->value("render_screen", 0).toInt();
+
     // Load all layers (layer_0 is front-most)
     m_layer0 = m_settings->value("layer_0", "").toString();
     m_layer1 = m_settings->value("layer_1", "").toString();
@@ -181,11 +184,14 @@ void ConfigManager::loadConfig()
     m_layerTransition8 = m_settings->value("layer_transition_8", 300).toInt();
     m_layerTransition9 = m_settings->value("layer_transition_9", 300).toInt();
 
-    QString renderWindow = m_settings->value("render_window", "1024;600").toString();  // Default to 1024x600
-    QStringList dimensions = renderWindow.split(';');
+    QString renderWindow = m_settings->value("render_window", "1024x600").toString();  // Default to 1024x600
+    qDebug() << "DEBUG: Read render_window from INI:" << renderWindow;
+    QStringList dimensions = renderWindow.split('x');
+    qDebug() << "DEBUG: Split dimensions:" << dimensions;
     if (dimensions.size() == 2) {
         m_renderWidth = dimensions[0].toInt();
         m_renderHeight = dimensions[1].toInt();
+        qDebug() << "DEBUG: Parsed width:" << m_renderWidth << "height:" << m_renderHeight;
     }
     m_renderRotate = m_settings->value("render_rotate", 0).toInt();
     m_renderMouse = m_settings->value("render_mouse", 1).toInt();
@@ -206,6 +212,7 @@ void ConfigManager::loadConfig()
     qDebug() << "  layer_7:" << m_layer7 << "(transition:" << m_layerTransition7 << "ms)";
     qDebug() << "  layer_8:" << m_layer8 << "(transition:" << m_layerTransition8 << "ms)";
     qDebug() << "  layer_9:" << m_layer9 << "(transition:" << m_layerTransition9 << "ms)";
+    qDebug() << "Render fullscreen mode:" << (m_renderScreen ? "enabled" : "disabled");
     qDebug() << "Render dimensions:" << m_renderWidth << "x" << m_renderHeight << "Rotation:" << m_renderRotate;
     qDebug() << "Custom mouse cursor:" << (m_renderMouse ? "enabled" : "disabled");
 

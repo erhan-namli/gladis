@@ -35,12 +35,15 @@ echo ""
 echo "Installing Qt6 Quick Controls and Templates..."
 sudo apt install -y \
     qml6-module-qtquick-templates \
+    qml6-module-qtqml-workerscript \
     libqt6quickcontrols2-6
 
 echo ""
 echo "Installing Qt6 multimedia and additional modules..."
 sudo apt install -y \
     qt6-multimedia-dev \
+    qt6-5compat-dev \
+    qml6-module-qt5compat-graphicaleffects \
     libqt6core6 \
     libqt6gui6 \
     libqt6qml6 \
@@ -69,12 +72,13 @@ echo "  - Qt6 Base Development"
 echo "  - Qt6 Declarative (QML)"
 echo "  - Qt6 Quick Controls & Templates"
 echo "  - Qt6 Multimedia"
+echo "  - Qt6 Core5Compat"
 echo "  - Build tools (CMake, GCC)"
 echo ""
 echo "You can now build and run the GLADIS application."
 echo ""
 echo "To build the application:"
-echo "  cd ~/self_contained_app_layers_v2"
+echo "  cd ~/gladis"
 echo "  mkdir -p build-rpi"
 echo "  cd build-rpi"
 echo "  cmake .."

@@ -43,6 +43,7 @@ class ConfigManager : public QObject
     Q_PROPERTY(QVariantList platformList READ platformList NOTIFY configChanged)
 
     // Render properties
+    Q_PROPERTY(int renderScreen READ renderScreen NOTIFY configChanged)
     Q_PROPERTY(int renderWidth READ renderWidth NOTIFY configChanged)
     Q_PROPERTY(int renderHeight READ renderHeight NOTIFY configChanged)
     Q_PROPERTY(int renderRotate READ renderRotate NOTIFY configChanged)
@@ -129,6 +130,7 @@ public:
     QVariantList platformList() const { return m_platformList; }
 
     // Getters for render properties
+    int renderScreen() const { return m_renderScreen; }
     int renderWidth() const { return m_renderWidth; }
     int renderHeight() const { return m_renderHeight; }
     int renderRotate() const { return m_renderRotate; }
@@ -222,6 +224,7 @@ private:
     QVariantList m_platformList;
 
     // Render properties
+    int m_renderScreen;
     int m_renderWidth;
     int m_renderHeight;
     int m_renderRotate;

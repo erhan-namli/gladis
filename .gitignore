@@ -3,6 +3,8 @@ build/
 build-*/
 cmake-build-*/
 
+.claude
+
 # Compiled executables
 GLADIS
 GatorEsportsDashboard

@@ -57,6 +57,30 @@ mkdir -p "$DEPLOY_DIR/$APP_NAME"
 echo -e "${YELLOW}Copying executable...${NC}"
 cp "$EXECUTABLE" "$DEPLOY_DIR/$APP_NAME/"
 
+# Copy config file if it exists
+if [ -f "gladis.ini" ]; then
+    echo -e "${YELLOW}Copying configuration file...${NC}"
+    cp "gladis.ini" "$DEPLOY_DIR/$APP_NAME/"
+fi
+
+# Copy welcome-data directory if it exists
+if [ -d "welcome-data" ]; then
+    echo -e "${YELLOW}Copying welcome-data assets...${NC}"
+    cp -r "welcome-data" "$DEPLOY_DIR/$APP_NAME/"
+fi
+
+# Copy mouse_assets directory if it exists
+if [ -d "mouse_assets" ]; then
+    echo -e "${YELLOW}Copying mouse assets...${NC}"
+    cp -r "mouse_assets" "$DEPLOY_DIR/$APP_NAME/"
+fi
+
+# Copy assets directory if it exists
+if [ -d "assets" ]; then
+    echo -e "${YELLOW}Copying assets...${NC}"
+    cp -r "assets" "$DEPLOY_DIR/$APP_NAME/"
+fi
+
 # Function to copy library and its dependencies recursively
 copy_lib_dependencies() {
     local lib=$1
@@ -76,13 +100,32 @@ copy_lib_dependencies() {
 # Find Qt installation
 echo -e "${YELLOW}Detecting Qt6 installation...${NC}"
 QT_PATH=$(qmake6 -query QT_INSTALL_PREFIX 2>/dev/null || echo "/usr")
-QT_PLUGINS="$QT_PATH/lib/$ARCH-linux-gnu/qt6/plugins"
-QT_QML="$QT_PATH/lib/$ARCH-linux-gnu/qt6/qml"
 
-# Alternative paths
-if [ ! -d "$QT_PLUGINS" ]; then
-    QT_PLUGINS="/usr/lib/qt6/plugins"
-    QT_QML="/usr/lib/qt6/qml"
+# Try multiple possible Qt plugin paths (especially important for Raspberry Pi)
+QT_PLUGINS=""
+QT_QML=""
+
+# Search order: arm-linux-gnueabihf (Pi 5), aarch64-linux-gnu, generic paths
+for QT_SEARCH_PATH in \
+    "/usr/lib/arm-linux-gnueabihf/qt6" \
+    "/usr/lib/aarch64-linux-gnu/qt6" \
+    "$QT_PATH/lib/$ARCH-linux-gnu/qt6" \
+    "/usr/lib/qt6"; do
+    if [ -d "$QT_SEARCH_PATH/plugins" ]; then
+        QT_PLUGINS="$QT_SEARCH_PATH/plugins"
+        QT_QML="$QT_SEARCH_PATH/qml"
+        break
+    fi
+done
+
+if [ -z "$QT_PLUGINS" ]; then
+    echo -e "${RED}ERROR: Could not find Qt6 plugins directory!${NC}"
+    echo "Searched paths:"
+    echo "  /usr/lib/arm-linux-gnueabihf/qt6/plugins"
+    echo "  /usr/lib/aarch64-linux-gnu/qt6/plugins"
+    echo "  $QT_PATH/lib/$ARCH-linux-gnu/qt6/plugins"
+    echo "  /usr/lib/qt6/plugins"
+    exit 1
 fi
 
 echo -e "${GREEN}Qt path: $QT_PATH${NC}"

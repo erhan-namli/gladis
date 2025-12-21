@@ -5,10 +5,11 @@ import "Components"
 Window {
     id: mainWindow
     visible: true
-    visibility: Window.FullScreen
-    // Resolution set once at startup, doesn't change during runtime
-    width: 1024
-    height: 600
+    // Visibility controlled by render_screen setting in INI
+    visibility: configManager.renderScreen === 1 ? Window.FullScreen : Window.Windowed
+    // Resolution from config - swap width/height for 90/270 degree rotations
+    width: (configManager.renderRotate === 90 || configManager.renderRotate === 270) ? configManager.renderHeight : configManager.renderWidth
+    height: (configManager.renderRotate === 90 || configManager.renderRotate === 270) ? configManager.renderWidth : configManager.renderHeight
     title: "GameLab Esports Dashboard"
     color: "#333333"
 
@@ -16,15 +17,12 @@ Window {
     flags: Qt.Window | Qt.FramelessWindowHint
 
     Component.onCompleted: {
-        // Set resolution from config once at startup
-        mainWindow.width = configManager.renderWidth
-        mainWindow.height = configManager.renderHeight
-
         if (configManager.renderMouse === 1) {
             Qt.application.overrideCursor = Qt.BlankCursor
         }
 
-        console.log("Window initialized at", mainWindow.width, "x", mainWindow.height)
+        console.log("Window initialized - Mode:", configManager.renderScreen === 1 ? "FullScreen" : "Windowed",
+                    "Dimensions:", width, "x", height, "Rotation:", configManager.renderRotate)
     }
 
     // Detect orientation
@@ -90,14 +88,22 @@ Window {
         z: -1  // Behind everything to not block interactions
     }
 
-    // Background with gradient using facility colors
-    Rectangle {
-        anchors.fill: parent
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: mainWindow.primaryColor }
-            GradientStop { position: 1.0; color: mainWindow.accentColor }
+    // Rotatable content container
+    Item {
+        id: contentContainer
+        anchors.centerIn: parent
+        width: configManager.renderWidth
+        height: configManager.renderHeight
+        rotation: configManager.renderRotate
+
+        // Background with gradient using facility colors
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: mainWindow.primaryColor }
+                GradientStop { position: 1.0; color: mainWindow.accentColor }
+            }
         }
-    }
 
     // ===== DYNAMIC LAYER SYSTEM =====
     // Layer 0 is front-most (highest z-index)
@@ -574,4 +580,6 @@ Window {
             }
         }
     }
+
+    } // End of contentContainer
 }
