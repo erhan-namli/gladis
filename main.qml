@@ -45,6 +45,16 @@ Window {
         // This ensures all components adjust to the new dimensions
     }
 
+    // Helper function to check if an app should be visible based on its state
+    function isAppStateActive(appName) {
+        if (appName === "app_timer") return configManager.timerState
+        if (appName === "app_alert") return configManager.alertState
+        if (appName === "app_blank") return configManager.blankState
+        if (appName === "app_hello") return configManager.helloState
+        // app_image has no state flag, always show if layer is set
+        return true
+    }
+
     // TOGGLE THIS: Set to true to use pixmap scrolling (last resort), false for fade in/out carousel
     property bool usePixmapScrolling: true
 
@@ -96,9 +106,23 @@ Window {
         height: configManager.renderHeight
         rotation: configManager.renderRotate
 
+        // Property to check if any layer is active
+        property bool hasActiveLayer: (configManager.layer0 !== "" && isAppStateActive(configManager.layer0)) ||
+                                      (configManager.layer1 !== "" && isAppStateActive(configManager.layer1)) ||
+                                      (configManager.layer2 !== "" && isAppStateActive(configManager.layer2)) ||
+                                      (configManager.layer3 !== "" && isAppStateActive(configManager.layer3)) ||
+                                      (configManager.layer4 !== "" && isAppStateActive(configManager.layer4)) ||
+                                      (configManager.layer5 !== "" && isAppStateActive(configManager.layer5)) ||
+                                      (configManager.layer6 !== "" && isAppStateActive(configManager.layer6)) ||
+                                      (configManager.layer7 !== "" && isAppStateActive(configManager.layer7)) ||
+                                      (configManager.layer8 !== "" && isAppStateActive(configManager.layer8)) ||
+                                      (configManager.layer9 !== "" && isAppStateActive(configManager.layer9))
+
         // Background with gradient using facility colors
+        // Only show if at least one layer is active
         Rectangle {
             anchors.fill: parent
+            visible: contentContainer.hasActiveLayer
             gradient: Gradient {
                 GradientStop { position: 0.0; color: mainWindow.primaryColor }
                 GradientStop { position: 1.0; color: mainWindow.accentColor }
@@ -115,7 +139,7 @@ Window {
         id: layer9Loader
         anchors.fill: parent
         z: 10
-        active: configManager.layer9 !== ""
+        active: configManager.layer9 !== "" && isAppStateActive(configManager.layer9)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -131,6 +155,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -150,6 +176,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer9 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer9 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -158,7 +199,7 @@ Window {
         id: layer8Loader
         anchors.fill: parent
         z: 20
-        active: configManager.layer8 !== ""
+        active: configManager.layer8 !== "" && isAppStateActive(configManager.layer8)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -174,6 +215,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -192,6 +235,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer8 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer8 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -200,7 +258,7 @@ Window {
         id: layer7Loader
         anchors.fill: parent
         z: 30
-        active: configManager.layer7 !== ""
+        active: configManager.layer7 !== "" && isAppStateActive(configManager.layer7)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -216,6 +274,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -234,6 +294,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer7 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer7 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -242,7 +317,7 @@ Window {
         id: layer6Loader
         anchors.fill: parent
         z: 40
-        active: configManager.layer6 !== ""
+        active: configManager.layer6 !== "" && isAppStateActive(configManager.layer6)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -258,6 +333,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -276,6 +353,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer6 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer6 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -284,7 +376,7 @@ Window {
         id: layer5Loader
         anchors.fill: parent
         z: 50
-        active: configManager.layer5 !== ""
+        active: configManager.layer5 !== "" && isAppStateActive(configManager.layer5)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -300,6 +392,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -318,6 +412,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer5 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer5 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -326,7 +435,7 @@ Window {
         id: layer4Loader
         anchors.fill: parent
         z: 60
-        active: configManager.layer4 !== ""
+        active: configManager.layer4 !== "" && isAppStateActive(configManager.layer4)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -342,6 +451,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -360,6 +471,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer4 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer4 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -368,7 +494,7 @@ Window {
         id: layer3Loader
         anchors.fill: parent
         z: 70
-        active: configManager.layer3 !== ""
+        active: configManager.layer3 !== "" && isAppStateActive(configManager.layer3)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -377,6 +503,16 @@ Window {
                 duration: configManager.layerTransition3
                 easing.type: Easing.InOutQuad
             }
+        }
+
+        source: {
+            var appName = configManager.layer3
+            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
+            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
+            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
+            return ""
         }
 
         onLoaded: {
@@ -394,14 +530,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
-        }
-
-        source: {
-            var appName = configManager.layer3
-            if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
-            if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
-            if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
-            return ""
+            if (item && configManager.layer3 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer3 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -410,7 +553,7 @@ Window {
         id: layer2Loader
         anchors.fill: parent
         z: 80
-        active: configManager.layer2 !== ""
+        active: configManager.layer2 !== "" && isAppStateActive(configManager.layer2)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -426,6 +569,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -444,6 +589,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer2 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer2 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -452,7 +612,7 @@ Window {
         id: layer1Loader
         anchors.fill: parent
         z: 90
-        active: configManager.layer1 !== ""
+        active: configManager.layer1 !== "" && isAppStateActive(configManager.layer1)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -468,6 +628,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -486,6 +648,21 @@ Window {
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
             }
+            if (item && configManager.layer1 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer1 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
+            }
         }
     }
 
@@ -494,7 +671,7 @@ Window {
         id: layer0Loader
         anchors.fill: parent
         z: 100
-        active: configManager.layer0 !== ""
+        active: configManager.layer0 !== "" && isAppStateActive(configManager.layer0)
         opacity: active ? 1.0 : 0.0
         visible: opacity > 0.01
 
@@ -510,6 +687,8 @@ Window {
             if (appName === "app_hello") return "qrc:/Components/WelcomeApp.qml"
             if (appName === "app_timer") return "qrc:/Components/TimerApp.qml"
             if (appName === "app_image") return "qrc:/Components/ImageApp.qml"
+            if (appName === "app_alert") return "qrc:/Components/AlertApp.qml"
+            if (appName === "app_blank") return "qrc:/Components/BlankApp.qml"
             return ""
         }
 
@@ -527,6 +706,21 @@ Window {
                 item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
                 item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
                 item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer0 === "app_alert") {
+                item.alertState = Qt.binding(function() { return configManager.alertState })
+                item.alertText = Qt.binding(function() { return configManager.alertText })
+                item.alertMenuLeft = Qt.binding(function() { return configManager.alertMenuLeft })
+                item.alertMenuMiddle = Qt.binding(function() { return configManager.alertMenuMiddle })
+                item.alertMenuRight = Qt.binding(function() { return configManager.alertMenuRight })
+                item.colorMain = Qt.binding(function() { return configManager.colorMain })
+                item.colorBg01 = Qt.binding(function() { return configManager.colorBg01 })
+                item.colorBg02 = Qt.binding(function() { return configManager.colorBg02 })
+                item.colorText = Qt.binding(function() { return configManager.colorText })
+            }
+            if (item && configManager.layer0 === "app_blank") {
+                item.blankState = Qt.binding(function() { return configManager.blankState })
+                item.blankFade = Qt.binding(function() { return configManager.blankFade })
             }
         }
     }
@@ -547,9 +741,27 @@ Window {
             hoverEnabled: true
 
             onPositionChanged: function(mouse) {
-                cursorTracker.mouseX = mouse.x
-                cursorTracker.mouseY = mouse.y
+                // Update cursor position relative to contentContainer, not global coordinates
+                var mappedPos = mapToItem(contentContainer, mouse.x, mouse.y)
+                cursorTracker.mouseX = mappedPos.x
+                cursorTracker.mouseY = mappedPos.y
                 mouse.accepted = false
+            }
+
+            // Also handle touch events for cursor tracking
+            MultiPointTouchArea {
+                anchors.fill: parent
+                maximumTouchPoints: 1
+                mouseEnabled: false
+
+                onTouchUpdated: function(touchPoints) {
+                    if (touchPoints.length > 0) {
+                        var touch = touchPoints[0]
+                        var mappedPos = mapToItem(contentContainer, touch.x, touch.y)
+                        cursorTracker.mouseX = mappedPos.x
+                        cursorTracker.mouseY = mappedPos.y
+                    }
+                }
             }
         }
     }
@@ -563,6 +775,7 @@ Window {
         smooth: true
         z: 10000  // On top for visibility only
 
+        // Position cursor with hotspot at top-left corner (standard pointer behavior)
         x: cursorTracker.mouseX
         y: cursorTracker.mouseY
 

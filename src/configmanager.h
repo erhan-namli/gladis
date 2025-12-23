@@ -85,12 +85,26 @@ class ConfigManager : public QObject
     Q_PROPERTY(QString timerMenuLeft READ timerMenuLeft NOTIFY configChanged)
     Q_PROPERTY(QString timerMenuMiddle READ timerMenuMiddle NOTIFY configChanged)
     Q_PROPERTY(QString timerMenuRight READ timerMenuRight NOTIFY configChanged)
+    Q_PROPERTY(QString timerAlert READ timerAlert NOTIFY configChanged)
+    Q_PROPERTY(QString timerReset READ timerReset NOTIFY configChanged)
 
     // App Image Properties
     Q_PROPERTY(QString imageSource READ imageSource NOTIFY configChanged)
     Q_PROPERTY(QString imageBgColor READ imageBgColor NOTIFY configChanged)
     Q_PROPERTY(int imageFillMode READ imageFillMode NOTIFY configChanged)
     Q_PROPERTY(bool imageShowBg READ imageShowBg NOTIFY configChanged)
+
+    // App Alert Properties
+    Q_PROPERTY(bool alertState READ alertState NOTIFY configChanged)
+    Q_PROPERTY(QString alertText READ alertText NOTIFY configChanged)
+    Q_PROPERTY(QString alertMenuLeft READ alertMenuLeft NOTIFY configChanged)
+    Q_PROPERTY(QString alertMenuMiddle READ alertMenuMiddle NOTIFY configChanged)
+    Q_PROPERTY(QString alertMenuRight READ alertMenuRight NOTIFY configChanged)
+    Q_PROPERTY(QString buttonDir READ buttonDir NOTIFY configChanged)
+
+    // App Blank Properties
+    Q_PROPERTY(bool blankState READ blankState NOTIFY configChanged)
+    Q_PROPERTY(int blankFade READ blankFade NOTIFY configChanged)
 
 public:
     explicit ConfigManager(QObject *parent = nullptr);
@@ -172,12 +186,26 @@ public:
     QString timerMenuLeft() const { return m_timerMenuLeft; }
     QString timerMenuMiddle() const { return m_timerMenuMiddle; }
     QString timerMenuRight() const { return m_timerMenuRight; }
+    QString timerAlert() const { return m_timerAlert; }
+    QString timerReset() const { return m_timerReset; }
 
     // Getters for image app
     QString imageSource() const { return m_imageSource; }
     QString imageBgColor() const { return m_imageBgColor; }
     int imageFillMode() const { return m_imageFillMode; }
     bool imageShowBg() const { return m_imageShowBg; }
+
+    // Getters for alert app
+    bool alertState() const { return m_alertState; }
+    QString alertText() const { return m_alertText; }
+    QString alertMenuLeft() const { return m_alertMenuLeft; }
+    QString alertMenuMiddle() const { return m_alertMenuMiddle; }
+    QString alertMenuRight() const { return m_alertMenuRight; }
+    QString buttonDir() const { return m_buttonDir; }
+
+    // Getters for blank app
+    bool blankState() const { return m_blankState; }
+    int blankFade() const { return m_blankFade; }
 
 signals:
     void configChanged();
@@ -266,12 +294,26 @@ private:
     QString m_timerMenuLeft;
     QString m_timerMenuMiddle;
     QString m_timerMenuRight;
+    QString m_timerAlert;
+    QString m_timerReset;
 
     // App Image properties
     QString m_imageSource;
     QString m_imageBgColor;
     int m_imageFillMode;  // Qt::AspectRatioMode enum value
     bool m_imageShowBg;
+
+    // App Alert properties
+    bool m_alertState;
+    QString m_alertText;
+    QString m_alertMenuLeft;
+    QString m_alertMenuMiddle;
+    QString m_alertMenuRight;
+    QString m_buttonDir;
+
+    // App Blank properties
+    bool m_blankState;
+    int m_blankFade;
 };
 
 #endif // CONFIGMANAGER_H

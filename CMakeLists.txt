@@ -27,6 +27,8 @@ set(PROJECT_SOURCES
     src/datamanager.h
     src/configmanager.cpp
     src/configmanager.h
+    src/fileiohelper.cpp
+    src/fileiohelper.h
 )
 
 # QML resources

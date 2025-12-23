@@ -9,11 +9,15 @@ Rectangle {
     // --- CONFIGURATION (Matched to main.qml requirements) ---
     property int timerMax: 20
     property int currentTime: timerMax
-    
-    // "timerCount" controls if the timer is running
-    property bool timerCount: false 
-    // "timerState" is passed from main.qml
-    property bool timerState: true 
+
+    // "timerCount" controls if the timer is running (from INI)
+    property bool timerCount: false
+    // "timerState" is passed from main.qml (master visibility control)
+    property bool timerState: true
+
+    // Internal state to track if countdown is actually running
+    // This allows buttons to override INI timerCount setting
+    property bool isCountdownActive: timerCount 
     
     property string timerText: "FINISH SSO LOGIN"
     
@@ -21,6 +25,16 @@ Rectangle {
     property string timerMenuLeft: "NEED MORE TIME"
     property string timerMenuMiddle: ""
     property string timerMenuRight: "START OVER"
+
+    // File paths
+    property string timerAlert: configManager.timerAlert || "/dev/shm/app/timer_alert"
+    property string timerReset: configManager.timerReset || "/dev/shm/app/timer_reset"
+    property string buttonDir: configManager.buttonDir || "/dev/shm/app/"
+
+    // Button press state tracking
+    property bool leftButtonPressed: false
+    property bool middleButtonPressed: false
+    property bool rightButtonPressed: false
 
     // --- THEME ---
     property color colorMain: "#FF6B35"
@@ -106,7 +120,7 @@ Rectangle {
                         from: 0; to: 360
                         duration: 2000
                         loops: Animation.Infinite
-                        running: root.timerCount
+                        running: root.isCountdownActive
                     }
                 }
             }
@@ -158,13 +172,14 @@ Rectangle {
             id: leftButton
             width: 260; height: 70
             radius: 10
-            color: root.colorMain
+            color: isHovered ? root.colorMain : "transparent"  // Fill on hover only
             border.color: root.colorMain
             border.width: 3
             visible: root.timerMenuLeft !== ""
 
             property bool isHovered: false
-            opacity: isHovered ? 0.7 : 1.0
+            property bool isDisabled: root.leftButtonPressed
+            opacity: isDisabled ? 0.5 : 1.0
 
             Text {
                 anchors.centerIn: parent
@@ -177,6 +192,7 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.BlankCursor  // Hide cursor when custom cursor is enabled
+                enabled: !leftButton.isDisabled
 
                 onEntered: leftButton.isHovered = true
                 onExited: leftButton.isHovered = false
@@ -186,9 +202,16 @@ Rectangle {
                 onReleased: {
                     parent.scale = 1.0
                     // Handle the action on release to support both mouse and touch
-                    if (contains(Qt.point(mouseX, mouseY))) {
+                    if (contains(Qt.point(mouseX, mouseY)) && !leftButton.isDisabled) {
                         root.currentTime = root.timerMax
-                        root.timerCount = true
+                        root.isCountdownActive = true
+
+                        // Create button press file
+                        var buttonFile = root.buttonDir + "button_" + root.timerMenuLeft.replace(/\s+/g, "_")
+                        fileIO.writeFile(buttonFile, "1")
+                        root.leftButtonPressed = true
+                        fileIO.watchFile(buttonFile)
+                        console.log("Button pressed, created file:", buttonFile)
                     }
                 }
 
@@ -212,7 +235,8 @@ Rectangle {
             visible: root.timerMenuMiddle !== ""
 
             property bool isHovered: false
-            opacity: isHovered ? 0.7 : 1.0
+            property bool isDisabled: root.middleButtonPressed
+            opacity: isDisabled ? 0.5 : (isHovered ? 0.7 : 1.0)
 
             Text {
                 anchors.centerIn: parent
@@ -225,6 +249,7 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.BlankCursor  // Hide cursor when custom cursor is enabled
+                enabled: !middleButton.isDisabled
 
                 onEntered: middleButton.isHovered = true
                 onExited: middleButton.isHovered = false
@@ -234,8 +259,15 @@ Rectangle {
                 onReleased: {
                     parent.scale = 1.0
                     // Handle the action on release to support both mouse and touch
-                    if (contains(Qt.point(mouseX, mouseY))) {
+                    if (contains(Qt.point(mouseX, mouseY)) && !middleButton.isDisabled) {
                         console.log("Middle button clicked")
+
+                        // Create button press file
+                        var buttonFile = root.buttonDir + "button_" + root.timerMenuMiddle.replace(/\s+/g, "_")
+                        fileIO.writeFile(buttonFile, "1")
+                        root.middleButtonPressed = true
+                        fileIO.watchFile(buttonFile)
+                        console.log("Button pressed, created file:", buttonFile)
                     }
                 }
 
@@ -259,7 +291,8 @@ Rectangle {
             visible: root.timerMenuRight !== ""
 
             property bool isHovered: false
-            opacity: isHovered ? 0.7 : 1.0
+            property bool isDisabled: root.rightButtonPressed
+            opacity: isDisabled ? 0.5 : (isHovered ? 0.7 : 1.0)
 
             Text {
                 anchors.centerIn: parent
@@ -272,6 +305,7 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.BlankCursor  // Hide cursor when custom cursor is enabled
+                enabled: !rightButton.isDisabled
 
                 onEntered: rightButton.isHovered = true
                 onExited: rightButton.isHovered = false
@@ -281,9 +315,16 @@ Rectangle {
                 onReleased: {
                     parent.scale = 1.0
                     // Handle the action on release to support both mouse and touch
-                    if (contains(Qt.point(mouseX, mouseY))) {
+                    if (contains(Qt.point(mouseX, mouseY)) && !rightButton.isDisabled) {
                         root.currentTime = root.timerMax
                         // Keep the timer running if it was already running
+
+                        // Create button press file
+                        var buttonFile = root.buttonDir + "button_" + root.timerMenuRight.replace(/\s+/g, "_")
+                        fileIO.writeFile(buttonFile, "1")
+                        root.rightButtonPressed = true
+                        fileIO.watchFile(buttonFile)
+                        console.log("Button pressed, created file:", buttonFile)
                     }
                 }
 
@@ -303,8 +344,8 @@ Rectangle {
         id: mainTimer
         interval: 1000
         repeat: true
-        // Only run timer when the app is visible AND timer settings allow it
-        running: root.visible && root.timerCount && root.timerState && root.currentTime > 0
+        // Only run timer when the app is visible AND countdown is active
+        running: root.visible && root.isCountdownActive && root.timerState && root.currentTime > 0
         triggeredOnStart: false
 
         property real lastTickTime: 0
@@ -345,12 +386,64 @@ Rectangle {
             root.currentTime--
             if (root.currentTime === 0) {
                 console.log("Timer Finished")
+                // Write alert file
+                writeTimerAlertFile()
             }
         }
     }
+
+    // Watch for timer reset file and button files
+    Connections {
+        target: fileIO
+
+        function onFileChanged(path) {
+            if (path === root.timerReset) {
+                console.log("Timer reset file detected")
+                root.currentTime = root.timerMax
+                root.isCountdownActive = false
+
+                // Delete the reset file
+                fileIO.deleteFile(root.timerReset)
+            }
+
+            // Check for button file deletions (file no longer exists = re-enable button)
+            var leftButtonFile = root.buttonDir + "button_" + root.timerMenuLeft.replace(/\s+/g, "_")
+            var middleButtonFile = root.buttonDir + "button_" + root.timerMenuMiddle.replace(/\s+/g, "_")
+            var rightButtonFile = root.buttonDir + "button_" + root.timerMenuRight.replace(/\s+/g, "_")
+
+            if (path === leftButtonFile && !fileIO.fileExists(leftButtonFile)) {
+                console.log("Left button file deleted, re-enabling button")
+                root.leftButtonPressed = false
+            }
+            if (path === middleButtonFile && !fileIO.fileExists(middleButtonFile)) {
+                console.log("Middle button file deleted, re-enabling button")
+                root.middleButtonPressed = false
+            }
+            if (path === rightButtonFile && !fileIO.fileExists(rightButtonFile)) {
+                console.log("Right button file deleted, re-enabling button")
+                root.rightButtonPressed = false
+            }
+        }
+    }
+
+    Component.onCompleted: {
+        // Start watching for timer reset file
+        fileIO.watchFile(root.timerReset)
+    }
+
+    // Helper function to write timer alert file
+    function writeTimerAlertFile() {
+        console.log("Timer expired - writing alert file:", root.timerAlert)
+        fileIO.writeFile(root.timerAlert, "1")
+    }
     
+    // Sync isCountdownActive with timerCount from INI
+    onTimerCountChanged: {
+        root.isCountdownActive = root.timerCount
+    }
+
     onTimerMaxChanged: {
-        if (!root.timerCount) {
+        if (!root.isCountdownActive) {
             root.currentTime = root.timerMax
         }
     }

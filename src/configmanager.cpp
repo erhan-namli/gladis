@@ -45,10 +45,20 @@ ConfigManager::ConfigManager(QObject *parent)
     , m_timerMenuLeft("NEED MORE TIME")
     , m_timerMenuMiddle("")
     , m_timerMenuRight("START OVER")
+    , m_timerAlert("/dev/shm/app/timer_alert")
+    , m_timerReset("/dev/shm/app/timer_reset")
     , m_imageSource("")
     , m_imageBgColor("#000000")
     , m_imageFillMode(1)  // Qt::KeepAspectRatio (PreserveAspectFit)
     , m_imageShowBg(false)
+    , m_alertState(false)
+    , m_alertText("WANT TO CONTINUE?")
+    , m_alertMenuLeft("YES")
+    , m_alertMenuMiddle("")
+    , m_alertMenuRight("NO!")
+    , m_buttonDir("/dev/shm/app/")
+    , m_blankState(false)
+    , m_blankFade(5)
 {
     connect(m_fileWatcher, &QFileSystemWatcher::fileChanged, this, &ConfigManager::onFileChanged);
 }
@@ -225,10 +235,13 @@ void ConfigManager::loadConfig()
     m_timerMenuLeft = m_settings->value("timer_menu-l", "NEED MORE TIME").toString();
     m_timerMenuMiddle = m_settings->value("timer_menu-m", "").toString();
     m_timerMenuRight = m_settings->value("timer_menu-r", "START OVER").toString();
+    m_timerAlert = m_settings->value("timer_alert", "/dev/shm/app/timer_alert").toString();
+    m_timerReset = m_settings->value("timer_reset", "/dev/shm/app/timer_reset").toString();
     m_settings->endGroup();
 
     qDebug() << "Timer config - State:" << m_timerState << "Count:" << m_timerCount << "Max:" << m_timerMax;
     qDebug() << "Timer text:" << m_timerText;
+    qDebug() << "Timer alert file:" << m_timerAlert << "Reset file:" << m_timerReset;
 
     // Load App Image section
     m_settings->beginGroup("app_image");
@@ -239,6 +252,27 @@ void ConfigManager::loadConfig()
     m_settings->endGroup();
 
     qDebug() << "Image config - Source:" << m_imageSource << "FillMode:" << m_imageFillMode << "ShowBg:" << m_imageShowBg;
+
+    // Load App Alert section
+    m_settings->beginGroup("app_alert");
+    m_alertState = m_settings->value("alert_state", 0).toInt() == 1;
+    m_alertText = m_settings->value("alert_text", "WANT TO CONTINUE?").toString();
+    m_alertMenuLeft = m_settings->value("alert_menu-l", "YES").toString();
+    m_alertMenuMiddle = m_settings->value("alert_menu-m", "").toString();
+    m_alertMenuRight = m_settings->value("alert_menu-r", "NO!").toString();
+    m_buttonDir = m_settings->value("button_dir", "/dev/shm/app/").toString();
+    m_settings->endGroup();
+
+    qDebug() << "Alert config - State:" << m_alertState << "Text:" << m_alertText;
+    qDebug() << "Button directory:" << m_buttonDir;
+
+    // Load App Blank section
+    m_settings->beginGroup("app_blank");
+    m_blankState = m_settings->value("blank_state", 0).toInt() == 1;
+    m_blankFade = m_settings->value("blank_fade", 5).toInt();
+    m_settings->endGroup();
+
+    qDebug() << "Blank config - State:" << m_blankState << "Fade duration:" << m_blankFade << "seconds";
 
     qDebug() << "Config loaded successfully";
 
